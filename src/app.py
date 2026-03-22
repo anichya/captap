@@ -170,6 +170,14 @@ def submit_score():
 # Leaderboards
 # ---------------------------------------------------------------------------
 
+@app.route("/api/stats/<int:user_id>")
+def user_stats(user_id):
+    try:
+        return jsonify(db.get_user_stats(user_id))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/leaderboard/daily")
 def daily_leaderboard():
     try:

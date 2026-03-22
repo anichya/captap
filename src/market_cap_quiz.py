@@ -13,6 +13,7 @@ from zoneinfo import ZoneInfo
 EST = ZoneInfo("America/New_York")
 from pathlib import Path
 
+import re
 import requests
 import pandas as pd
 import yfinance as yf
@@ -153,17 +154,15 @@ def fetch_company(display_ticker: str, yf_ticker: str, name: str) -> Company | N
 
     summary = info.get("longBusinessSummary", "")
 
-    # Fun fact composed from available yfinance fields
-    employees = info.get("fullTimeEmployees")
-    revenue = info.get("totalRevenue")
-    industry = info.get("industry", "")
-    founded = info.get("founded")
-    parts: list[str] = []
-    if employees:
-        parts.append(f"{employees:,} full-time employees")
-    if industry:
-        parts.append(f"operates in {industry}")
-    fun_fact = " · ".join(parts) if parts else ""
+    # Fun fact: pull the 2nd meaningful sentence from the business summary,
+    # which tends to be more specific than the dry opener ("X Inc. is a company…")
+    fun_fact = ""
+    if summary:
+        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 40]
+        if len(sentences) >= 2:
+            fun_fact = sentences[1]
+        elif sentences:
+            fun_fact = sentences[0]
 
     return Company(
         name=name,

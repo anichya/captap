@@ -205,6 +205,68 @@
     #share-btn:hover, #play-again-btn:hover { opacity: 0.8; }
     #copy-toast { text-align: center; color: var(--green2); font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; margin-top: 8px; height: 16px; }
 
+    /* ── Performance label ── */
+    .perf-label {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; font-weight: 600;
+      letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
+    }
+
+    /* ── Auto-advance timer bar ── */
+    #auto-advance-bar {
+      height: 3px; background: var(--border2); border-radius: 2px;
+      margin: 8px 0 0; overflow: hidden; display: none;
+    }
+    #auto-advance-bar-inner {
+      height: 100%; background: var(--gold); width: 100%; border-radius: 2px;
+    }
+
+    /* ── Stats grid ── */
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 16px;
+    }
+    .stat-cell {
+      background: var(--surface2); border: 1px solid var(--border2); border-radius: 3px;
+      padding: 10px 6px; text-align: center;
+    }
+    .stat-num { font-family: "IBM Plex Mono", monospace; font-size: 1.05rem; font-weight: 600; color: var(--gold); }
+    .stat-lbl { font-family: "IBM Plex Mono", monospace; font-size: 0.5rem; color: var(--muted); letter-spacing: 0.8px; text-transform: uppercase; margin-top: 3px; }
+
+    /* ── Guest CTA ── */
+    .guest-cta {
+      background: #12100a; border: 1px solid var(--gold); border-radius: 3px;
+      padding: 16px; margin-top: 16px; text-align: center;
+    }
+    .guest-cta p { font-size: 0.8rem; color: var(--text); margin-bottom: 12px; line-height: 1.55; }
+    .guest-cta-btn {
+      width: 100%; padding: 12px; background: var(--gold); color: #0a0a0a;
+      border: none; border-radius: 2px; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.75rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase; cursor: pointer;
+    }
+
+    /* ── Confetti ── */
+    @keyframes confetti-fall {
+      0%   { transform: translateY(-10px) rotate(0deg);    opacity: 1; }
+      100% { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+    }
+    .confetti-piece {
+      position: fixed; border-radius: 2px;
+      animation: confetti-fall linear forwards; pointer-events: none; z-index: 9999;
+    }
+
+    /* ── Result row entrance ── */
+    @keyframes fadeSlideIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    .result-row { animation: fadeSlideIn 0.3s ease both; }
+
+    /* ── Score glow ── */
+    @keyframes scoreGlow {
+      0%,100% { text-shadow: none; }
+      50%     { text-shadow: 0 0 24px var(--gold); }
+    }
+    .score-glow { animation: scoreGlow 0.7s ease; }
+
     /* ── Registration modal ── */
     #modal-overlay {
       display: none; position: fixed; inset: 0;
@@ -319,6 +381,14 @@
       <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">This Week</div>
     </div>
     <div class="lb-body" id="ap-lb-body" style="margin-bottom:20px;"><div class="lb-empty">Loading leaderboard…</div></div>
+    <!-- Personal stats -->
+    <div id="user-stats-block" class="stats-grid" style="display:none;margin-top:16px;">
+      <div class="stat-cell"><div class="stat-num" id="stat-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
+      <div class="stat-cell"><div class="stat-num" id="stat-played">—</div><div class="stat-lbl">Played</div></div>
+      <div class="stat-cell"><div class="stat-num" id="stat-best">—</div><div class="stat-lbl">Best</div></div>
+      <div class="stat-cell"><div class="stat-num" id="stat-avg">—</div><div class="stat-lbl">Avg</div></div>
+    </div>
+
     <!-- Their score + share + countdown below -->
     <div style="border-top:1px solid var(--border2);padding-top:16px;text-align:center;">
       <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Your Score</div>
@@ -362,6 +432,7 @@
     <div class="question">— What is this company's market cap? —</div>
     <div id="choices"></div>
     <div id="feedback"></div>
+    <div id="auto-advance-bar"><div id="auto-advance-bar-inner"></div></div>
     <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
     <button id="next-btn"   onclick="nextRound()">Next Question →</button>
   </div>
@@ -374,8 +445,9 @@
       🔁 PRACTICE MODE — This score won't count on the leaderboard. You already played today!
     </div>
     <div class="results-header">
+      <div class="perf-label" id="perf-label"></div>
       <h2>Final Score</h2>
-      <div class="final-score" id="final-score"></div>
+      <div class="final-score" id="final-score">0</div>
       <div class="max-score-label" id="max-score-label"></div>
     </div>
     <div id="results-rows"></div>
@@ -385,6 +457,10 @@
     <button id="challenge-btn"  onclick="copyChallenge()" style="display:none;">🔗 Challenge a Friend</button>
     <button id="play-again-btn" onclick="playAgain()">Play Again</button>
     <div id="copy-toast"></div>
+    <div id="guest-cta" class="guest-cta" style="display:none;">
+      <p>Create a free account to save your score and appear on the leaderboard.</p>
+      <button class="guest-cta-btn" onclick="showModal()">Save My Score →</button>
+    </div>
 
     <!-- Leaderboards -->
     <div class="lb-section">
@@ -400,6 +476,70 @@
 </div>
 
 <script>
+  // ── Helpers ──────────────────────────────────────────────────────
+  function getPerformanceLabel(score, max) {
+    if(score === max)        return "PERFECT SCORE";
+    if(score / max >= 0.8)  return "MARKET WIZARD";
+    if(score / max >= 0.6)  return "SHARP ANALYST";
+    if(score / max >= 0.4)  return "DECENT TRADER";
+    return "BACK TO BUSINESS SCHOOL";
+  }
+
+  function animateScore(targetEl, to, duration) {
+    let start = null;
+    function step(ts) {
+      if(!start) start = ts;
+      const progress = Math.min((ts - start) / duration, 1);
+      const eased = 1 - Math.pow(1 - progress, 3);
+      targetEl.textContent = Math.round(eased * to);
+      if(progress < 1) requestAnimationFrame(step);
+      else {
+        targetEl.textContent = to;
+        targetEl.classList.add("score-glow");
+        setTimeout(() => targetEl.classList.remove("score-glow"), 700);
+      }
+    }
+    requestAnimationFrame(step);
+  }
+
+  function fireConfetti(isPerfect) {
+    const palettes = {
+      perfect: ["#c9a84c","#e8c97a","#fff8dc","#f59e0b","#fde68a"],
+      high:    ["#c9a84c","#3daa62","#60a5fa","#c084fc","#fb923c"],
+    };
+    const colors = isPerfect ? palettes.perfect : palettes.high;
+    const count  = isPerfect ? 100 : 55;
+    for(let i = 0; i < count; i++) {
+      setTimeout(() => {
+        const el = document.createElement("div");
+        el.className = "confetti-piece";
+        el.style.left   = Math.random() * 100 + "vw";
+        el.style.top    = "-12px";
+        el.style.width  = (Math.random() * 5 + 5) + "px";
+        el.style.height = (Math.random() * 8 + 7) + "px";
+        el.style.background = colors[Math.floor(Math.random() * colors.length)];
+        el.style.animationDuration  = (Math.random() * 0.9 + 0.9) + "s";
+        el.style.animationDelay     = "0s";
+        document.body.appendChild(el);
+        setTimeout(() => el.remove(), 2500);
+      }, Math.random() * 700);
+    }
+  }
+
+  async function fetchAndShowStats(userId) {
+    try {
+      const res  = await fetch(`/api/stats/${userId}`);
+      const data = await res.json();
+      if(data.error) return;
+      userStreak = data.streak;
+      document.getElementById("stat-streak").textContent = data.streak;
+      document.getElementById("stat-played").textContent = data.games_played;
+      document.getElementById("stat-best").textContent   = data.best_score;
+      document.getElementById("stat-avg").textContent    = data.avg_score;
+      document.getElementById("user-stats-block").style.display = "grid";
+    } catch(e) {}
+  }
+
   // ── Ticker ────────────────────────────────────────────────────────
   function buildTicker(data) {
     const doubled = [...data, ...data];
@@ -489,6 +629,24 @@
       localStorage.setItem("captap_user", JSON.stringify(currentUser));
       updateUserPill();
       document.getElementById("modal-overlay").classList.remove("open");
+
+      // If a guest just finished a game, retroactively save their score
+      if(results.length > 0 && !isPractice) {
+        const maxTotal = puzzle.reduce((s,r) => s + r.points_available, 0);
+        const roundResults = results.map(r => ({ticker:r.round.ticker, correct:r.correct, pts:r.pts}));
+        await fetch("/api/scores", {
+          method:"POST", headers:{"Content-Type":"application/json"},
+          body:JSON.stringify({user_id:currentUser.id, score:totalScore, max_score:maxTotal, round_results:roundResults})
+        });
+        localStorage.setItem("captap_played_date", todayStr());
+        localStorage.setItem("captap_puzzle_version", currentPuzzleVersion);
+        localStorage.setItem("captap_last_score", totalScore);
+        localStorage.setItem("captap_last_max", maxTotal);
+        const guestCta = document.getElementById("guest-cta");
+        if(guestCta) guestCta.style.display = "none";
+        loadLeaderboard("daily");
+        fetchAndShowStats(currentUser.id);
+      }
     } catch(e) {
       errEl.textContent = "Connection error. Please try again.";
     } finally {
@@ -526,6 +684,8 @@
   let isPractice = false;
   let currentPuzzleVersion = "1";
   let myRank = null, myRankLabel = null, myPercentile = null;
+  let userStreak = 0;
+  let autoAdvanceTimer = null;
 
   // ── Challenge link detection ──────────────────────────────────────
   const _urlParams = new URLSearchParams(window.location.search);
@@ -570,6 +730,9 @@
       document.getElementById("ap-countdown").textContent = estCountdown();
     }, 1000);
     switchApTab("daily");
+
+    // Personal stats
+    if(currentUser) fetchAndShowStats(currentUser.id);
   }
 
   async function switchApTab(tab) {
@@ -647,7 +810,7 @@
   }
 
   async function init() {
-    if(!currentUser) showModal();
+    // No registration wall — guests can play immediately
 
     // If already played today, skip puzzle fetch — go straight to leaderboard
     if(localStorage.getItem("captap_played_date") === todayStr()) {
@@ -769,9 +932,25 @@
     fb.style.display="block"; fb.className=correct?"correct":"wrong";
     fb.textContent=correct?`✔ CORRECT  +${pts} PTS`:`✘ INCORRECT — ANSWER: ${round.actual_cap}`;
     document.getElementById("next-btn").style.display="block";
+
+    // Auto-advance after 1.5s — tap Next to skip
+    const bar      = document.getElementById("auto-advance-bar");
+    const barInner = document.getElementById("auto-advance-bar-inner");
+    bar.style.display = "block";
+    barInner.style.transition = "none";
+    barInner.style.width = "100%";
+    barInner.offsetWidth; // force reflow
+    barInner.style.transition = "width 1.5s linear";
+    barInner.style.width = "0%";
+    autoAdvanceTimer = setTimeout(() => {
+      bar.style.display = "none";
+      nextRound();
+    }, 1500);
   }
 
   function nextRound() {
+    if(autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+    document.getElementById("auto-advance-bar").style.display = "none";
     current++;
     current>=puzzle.length?showResults():showRound(current);
   }
@@ -781,14 +960,22 @@
     document.getElementById("progress").style.display="none";
 
     const maxTotal=puzzle.reduce((s,r)=>s+r.points_available,0);
-    document.getElementById("final-score").textContent=totalScore;
+
+    // Performance label
+    document.getElementById("perf-label").textContent = getPerformanceLabel(totalScore, maxTotal);
+
+    // Animated score count-up
+    const finalScoreEl = document.getElementById("final-score");
+    finalScoreEl.textContent = "0";
     document.getElementById("max-score-label").textContent=`OUT OF ${maxTotal} PTS`;
 
+    // Staggered result rows
     const rows=document.getElementById("results-rows");
     rows.innerHTML="";
-    results.forEach(r=>{
+    results.forEach((r, idx)=>{
       const div=document.createElement("div");
       div.className="result-row";
+      div.style.animationDelay = `${600 + idx * 150}ms`;
       div.innerHTML=`
         <span class="result-icon">${r.correct?"✔":"✘"}</span>
         <div class="result-company">${r.round.name}<div class="result-ticker">${r.round.ticker} · actual: ${r.round.actual_cap}</div></div>
@@ -797,6 +984,16 @@
     });
 
     document.getElementById("results").style.display="block";
+
+    // Start count-up after brief pause
+    setTimeout(() => animateScore(finalScoreEl, totalScore, 800), 200);
+
+    // Confetti for strong scores
+    if(totalScore >= 800) setTimeout(() => fireConfetti(totalScore === maxTotal), 300);
+
+    // Guest CTA
+    const guestCta = document.getElementById("guest-cta");
+    if(guestCta) guestCta.style.display = currentUser ? "none" : "block";
 
     // Show practice mode banner if applicable
     const practiceBanner = document.getElementById("practice-banner");
@@ -813,6 +1010,7 @@
       localStorage.setItem("captap_puzzle_version", currentPuzzleVersion);
       localStorage.setItem("captap_last_score", totalScore);
       localStorage.setItem("captap_last_max", maxTotal);
+      fetchAndShowStats(currentUser.id);
     }
 
     // Show challenge result if arriving via challenge link
@@ -876,7 +1074,9 @@
     const header=isPractice?"CapTap BETA Practice":"captap.app BETA";
     let rankLine="";
     if(myRankLabel&&!isPractice) rankLine=`\n${myRankLabel} today · Beat ${myPercentile}% of players`;
-    return `${header} — ${date}\n${emojiGrid}\n${roundParts}\nFinal score: ${totalScore}/1000${rankLine}\n\nCan you beat me? ${APP_URL}`;
+    let streakLine="";
+    if(userStreak>0&&!isPractice) streakLine=`\n🔥 ${userStreak}-day streak`;
+    return `${header} — ${date}\n${emojiGrid}\n${roundParts}\nFinal score: ${totalScore}/1000${rankLine}${streakLine}\n\nCan you beat me? ${APP_URL}`;
   }
 
   function _showToast(text) {
@@ -898,6 +1098,22 @@
       .then(()=>_showToast("▸ Challenge link copied!"))
       .catch(()=>_showToast("▸ Copy failed"));
   }
+
+  // ── Keyboard shortcuts (desktop) ─────────────────────────────────
+  document.addEventListener("keydown", e => {
+    if(document.getElementById("modal-overlay").classList.contains("open")) return;
+    if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    const gameVisible = document.getElementById("game-card").style.display !== "none";
+    if(!gameVisible) return;
+    const submitted = document.getElementById("next-btn").style.display !== "none";
+    if(!submitted && e.key >= "1" && e.key <= "5") {
+      const idx = parseInt(e.key) - 1;
+      if(idx < puzzle[current].choices.length) selectChoice(idx);
+    } else if(e.key === "Enter") {
+      if(!submitted && selectedChoice !== null) submitAnswer();
+      else if(submitted) nextRound();
+    }
+  });
 
   // ── Play again ───────────────────────────────────────────────────
   function playAgain() {

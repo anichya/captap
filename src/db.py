@@ -183,6 +183,41 @@ def get_locked_puzzle(est_date: str) -> dict | None:
             return {"tickers": list(row[0]), "companies_data": row[1]}
 
 
+def get_user_stats(user_id: int) -> dict:
+    """Return streak, games_played, best_score, avg_score for a user."""
+    from datetime import date, timedelta
+    from zoneinfo import ZoneInfo
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT played_at, score FROM scores WHERE user_id = %s ORDER BY played_at DESC",
+                (user_id,),
+            )
+            rows = cur.fetchall()
+
+    if not rows:
+        return {"streak": 0, "games_played": 0, "best_score": 0, "avg_score": 0}
+
+    games_played = len(rows)
+    best_score   = max(r[1] for r in rows)
+    avg_score    = round(sum(r[1] for r in rows) / games_played)
+    played_dates = {r[0] for r in rows}          # set of datetime.date objects
+
+    today = datetime.now(ZoneInfo("America/New_York")).date()
+    streak = 0
+    check  = today if today in played_dates else today - timedelta(days=1)
+    while check in played_dates:
+        streak += 1
+        check  -= timedelta(days=1)
+
+    return {
+        "streak":       streak,
+        "games_played": games_played,
+        "best_score":   best_score,
+        "avg_score":    avg_score,
+    }
+
+
 def lock_puzzle(est_date: str, tickers: list[str], companies_data: list[dict]) -> None:
     """Persist today's puzzle tickers + full company data so cold starts need no yfinance."""
     with get_conn() as conn:
