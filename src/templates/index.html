@@ -1,0 +1,916 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CapTap</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:      #0a0a0a; --surface: #111; --surface2: #1a1a1a;
+      --border:  #2a2a2a; --border2: #3a3a3a;
+      --text:    #e8e0d0; --muted:   #888070;
+      --gold:    #c9a84c; --gold2:   #e8c97a;
+      --red:     #cc3333; --green:   #2d8a4e; --green2: #3daa62;
+    }
+    body {
+      background: var(--bg); color: var(--text);
+      font-family: "IBM Plex Sans", sans-serif;
+      min-height: 100vh; display: flex; flex-direction: column; align-items: center;
+      padding: 0 0 80px;
+    }
+
+    /* ── Ticker ── */
+    #ticker-wrap {
+      width: 100%; overflow: hidden;
+      background: var(--green); padding: 6px 0;
+      border-bottom: 2px solid var(--gold);
+    }
+    .ticker-inner { display: flex; animation: scroll-ticker 28s linear infinite; white-space: nowrap; }
+    .ticker-item {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
+      color: #fff; padding: 0 24px; border-right: 1px solid rgba(255,255,255,0.25);
+    }
+    .up { color: #a8ffb8; } .down { color: #ffaaaa; }
+    @keyframes scroll-ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* ── Masthead ── */
+    #masthead {
+      width: 100%; max-width: 620px; padding: 28px 20px 0;
+      display: flex; flex-direction: column; align-items: center; margin-bottom: 4px;
+    }
+    .edition-line {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted);
+      letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 10px;
+      display: flex; gap: 16px;
+    }
+    .brand { font-family: "Playfair Display", serif; font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; }
+    .brand sup { font-size: 0.9rem; color: var(--gold); vertical-align: super; margin-left: 4px; }
+    .tagline { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
+    .masthead-rule  { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 14px 0 0; }
+    .masthead-rule2 { width: 100%; height: 3px; background: var(--gold); margin-bottom: 20px; }
+
+    /* ── Score + nav bar ── */
+    #top-bar {
+      width: 100%; max-width: 620px; padding: 0 20px;
+      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+    }
+    .score-label { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    #score-display { font-family: "IBM Plex Mono", monospace; font-size: 1.4rem; font-weight: 600; color: var(--gold); }
+    #user-pill {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
+      color: var(--muted); background: var(--surface2); border: 1px solid var(--border2);
+      padding: 5px 12px; border-radius: 2px; cursor: pointer; letter-spacing: 0.5px;
+    }
+    #user-pill:hover { color: var(--gold); border-color: var(--gold); }
+
+    /* ── Progress ── */
+    #progress { display: flex; gap: 6px; width: 100%; max-width: 620px; padding: 0 20px; margin-bottom: 20px; }
+    .prog-seg { flex: 1; height: 4px; background: var(--border2); transition: background 0.3s; }
+    .prog-seg.active { background: var(--gold); }
+    .prog-seg.done   { background: var(--muted); }
+
+    /* ── Cards ── */
+    .card { width: 100%; max-width: 620px; padding: 0 20px; }
+    .card-inner {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: 3px solid var(--gold); border-radius: 4px; padding: 24px 22px;
+    }
+
+    /* ── Loading ── */
+    #loading { text-align: center; padding: 60px 0; }
+    .spinner {
+      width: 36px; height: 36px; border: 3px solid var(--border2); border-top-color: var(--gold);
+      border-radius: 50%; animation: spin 0.8s linear infinite; margin: 0 auto 14px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    #loading p { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--muted); }
+
+    /* ── Tier badge ── */
+    .tier-badge {
+      display: inline-flex; align-items: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; font-weight: 600;
+      padding: 3px 10px; border-radius: 2px; margin-bottom: 16px; letter-spacing: 1px; text-transform: uppercase;
+    }
+    .tier-easy   { background: #0d1f12; color: var(--green2); border: 1px solid #1a3d22; }
+    .tier-medium { background: #1a1508; color: var(--gold2);  border: 1px solid #3d3010; }
+    .tier-hard   { background: #1f0d0d; color: #e05555;       border: 1px solid #3d1a1a; }
+
+    /* ── Company ── */
+    .company-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
+    .company-avatar {
+      width: 60px; height: 60px; border-radius: 4px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600;
+      overflow: hidden; background: var(--surface2); border: 1px solid var(--border2);
+    }
+    .company-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 7px; background: #fff; border-radius: 3px; }
+    .company-name { font-family: "Playfair Display", serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
+    .company-ticker { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600; background: var(--surface2); color: var(--gold); padding: 2px 8px; border-radius: 2px; border: 1px solid var(--border2); letter-spacing: 1px; }
+    .company-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.78rem; margin-bottom: 12px; }
+    .meta-item { display: flex; flex-direction: column; gap: 2px; }
+    .meta-label { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    .meta-value { color: var(--text); font-weight: 500; }
+    .company-description { font-size: 0.8rem; color: var(--muted); line-height: 1.65; border-left: 2px solid var(--gold); padding: 8px 12px; margin-bottom: 10px; background: var(--surface2); }
+    .company-funfact { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--gold); border: 1px solid #2a2010; background: #12100a; padding: 8px 12px; margin-bottom: 18px; display: flex; gap: 8px; border-radius: 2px; }
+
+    /* ── Choices ── */
+    .question { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
+    #choices { display: flex; flex-direction: column; gap: 7px; }
+    .choice-btn {
+      width: 100%; padding: 12px 16px; background: var(--surface2);
+      border: 1px solid var(--border2); border-left: 3px solid var(--border2);
+      color: var(--text); font-family: "IBM Plex Mono", monospace;
+      font-size: 0.9rem; font-weight: 600; text-align: left; cursor: pointer;
+      transition: all 0.12s; display: flex; align-items: center; gap: 14px; border-radius: 2px;
+    }
+    .choice-btn:hover:not(:disabled) { border-left-color: var(--gold); background: #1a1608; color: var(--gold2); }
+    .choice-btn.selected  { border-left-color: var(--gold2); background: #1a1608; color: var(--gold2); }
+    .choice-btn.correct   { border-left-color: var(--green2); background: #0d1f12; color: var(--green2); }
+    .choice-btn.wrong     { border-left-color: var(--red); background: #1f0d0d; color: #e05555; }
+    .choice-btn:disabled  { cursor: default; }
+    .choice-num { font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; flex-shrink: 0; font-weight: 600; }
+    .choice-btn.selected .choice-num { color: var(--gold); }
+    .choice-btn.correct  .choice-num { color: var(--green2); }
+    .choice-btn.wrong    .choice-num { color: #e05555; }
+
+    /* ── Buttons ── */
+    #submit-btn, #next-btn {
+      display: none; width: 100%; margin-top: 12px; padding: 13px; border: none; border-radius: 2px;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    #submit-btn { background: var(--gold); color: #0a0a0a; }
+    #next-btn   { background: var(--green); color: var(--text); }
+    #submit-btn:hover, #next-btn:hover { opacity: 0.85; }
+    #feedback {
+      display: none; margin-top: 10px; padding: 10px 14px;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; font-weight: 600; border-radius: 2px;
+    }
+    #feedback.correct { background: #0d1f12; border: 1px solid var(--green2); color: var(--green2); }
+    #feedback.wrong   { background: #1f0d0d; border: 1px solid var(--red);    color: #e05555; }
+
+    /* ── Results ── */
+    #results { display: none; width: 100%; max-width: 620px; padding: 0 20px; }
+    .results-header { text-align: center; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border2); }
+    .results-header h2 { font-family: "Playfair Display", serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
+    .final-score { font-family: "IBM Plex Mono", monospace; font-size: 3.5rem; font-weight: 600; color: var(--gold); line-height: 1; margin: 8px 0 2px; }
+    .max-score-label { font-family: "IBM Plex Mono", monospace; color: var(--muted); font-size: 0.75rem; letter-spacing: 1px; }
+    .result-row { display: flex; align-items: center; gap: 10px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.82rem; }
+    .result-icon { font-size: 1rem; flex-shrink: 0; }
+    .result-company { flex: 1; font-weight: 600; }
+    .result-ticker { font-family: "IBM Plex Mono", monospace; color: var(--muted); font-size: 0.7rem; }
+    .result-pts { font-family: "IBM Plex Mono", monospace; font-weight: 700; white-space: nowrap; }
+    .result-pts.earned { color: var(--green2); } .result-pts.missed { color: var(--muted); }
+
+    /* ── Leaderboard ── */
+    .lb-section { margin-top: 24px; }
+    .lb-tabs { display: flex; gap: 0; margin-bottom: 0; }
+    .lb-tab {
+      flex: 1; padding: 9px; background: var(--surface2);
+      border: 1px solid var(--border2); border-bottom: none;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; color: var(--muted);
+      cursor: pointer; text-align: center; transition: all 0.15s;
+    }
+    .lb-tab:first-child { border-radius: 2px 0 0 0; }
+    .lb-tab:last-child  { border-radius: 0 2px 0 0; }
+    .lb-tab.active { background: var(--surface); color: var(--gold); border-top: 2px solid var(--gold); }
+    .lb-body { background: var(--surface); border: 1px solid var(--border2); border-radius: 0 0 4px 4px; padding: 4px 0; }
+    .lb-row {
+      display: flex; align-items: center; gap: 10px;
+      padding: 9px 14px; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .lb-row:last-child { border-bottom: none; }
+    .lb-rank { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--muted); width: 20px; flex-shrink: 0; }
+    .lb-rank.gold   { color: #f59e0b; font-weight: 700; }
+    .lb-rank.silver { color: #94a3b8; font-weight: 700; }
+    .lb-rank.bronze { color: #c97c2a; font-weight: 700; }
+    .lb-name { flex: 1; font-weight: 600; }
+    .lb-name.me { color: var(--gold); }
+    .lb-score { font-family: "IBM Plex Mono", monospace; font-weight: 700; color: var(--green2); white-space: nowrap; }
+    .lb-meta  { font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; color: var(--muted); white-space: nowrap; }
+    .lb-empty { padding: 20px 14px; font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--muted); text-align: center; }
+
+    /* ── Share / play again ── */
+    #share-btn, #play-again-btn {
+      display: block; width: 100%; padding: 14px; border-radius: 2px;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase; cursor: pointer; transition: opacity 0.15s;
+    }
+    #share-btn      { background: var(--gold); color: #0a0a0a; border: none; margin-top: 20px; }
+    #play-again-btn { background: transparent; color: var(--muted); border: 1px solid var(--border2); margin-top: 8px; }
+    #share-btn:hover, #play-again-btn:hover { opacity: 0.8; }
+    #copy-toast { text-align: center; color: var(--green2); font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; margin-top: 8px; height: 16px; }
+
+    /* ── Registration modal ── */
+    #modal-overlay {
+      display: none; position: fixed; inset: 0;
+      background: rgba(0,0,0,0.85); z-index: 100;
+      align-items: center; justify-content: center; padding: 20px;
+    }
+    #modal-overlay.open { display: flex; }
+    #modal {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: 3px solid var(--gold); border-radius: 4px;
+      padding: 32px 28px; width: 100%; max-width: 400px; position: relative;
+    }
+    #modal h2 { font-family: "Playfair Display", serif; font-size: 1.5rem; margin-bottom: 6px; }
+    #modal p  { font-size: 0.82rem; color: var(--muted); margin-bottom: 24px; line-height: 1.6; }
+    .field { margin-bottom: 16px; }
+    .field label { display: block; font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; }
+    .field input {
+      width: 100%; padding: 11px 14px; background: var(--surface2);
+      border: 1px solid var(--border2); border-radius: 2px;
+      color: var(--text); font-family: "IBM Plex Mono", monospace; font-size: 0.9rem;
+      outline: none; transition: border-color 0.15s;
+    }
+    .field input:focus { border-color: var(--gold); }
+    #modal-error { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--red); margin-bottom: 12px; min-height: 16px; }
+    #modal-submit {
+      width: 100%; padding: 13px; background: var(--gold); color: #0a0a0a;
+      border: none; border-radius: 2px; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    #modal-submit:hover { opacity: 0.85; }
+  </style>
+</head>
+<body>
+
+<!-- Registration modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <div id="modal-close" onclick="hideModal()" style="display:none;position:absolute;top:16px;right:18px;font-size:1.2rem;cursor:pointer;color:var(--muted);">✕</div>
+    <h2 id="modal-title">Welcome to CapTap</h2>
+    <p id="modal-subtitle">Enter your details to track your score and compete on the leaderboard. You only need to do this once.</p>
+    <div class="field">
+      <label>Email</label>
+      <input id="reg-email" type="email" placeholder="you@example.com" />
+    </div>
+    <div class="field">
+      <label>Username</label>
+      <input id="reg-username" type="text" placeholder="WallStreetWolf" maxlength="30" />
+    </div>
+    <div id="modal-error"></div>
+    <button id="modal-submit" onclick="registerUser()">Let's Play →</button>
+    <div id="modal-logout" style="display:none;text-align:center;margin-top:14px;">
+      <a href="#" onclick="logoutUser()" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);text-decoration:none;letter-spacing:0.5px;">Log out</a>
+    </div>
+  </div>
+</div>
+
+<!-- Ticker -->
+<div id="ticker-wrap"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- Masthead -->
+<div id="masthead">
+  <div class="edition-line">
+    <span id="edition-date"></span>
+  </div>
+  <div class="brand">CapTap<sup style="font-size:0.45em;letter-spacing:1px;color:var(--gold);vertical-align:super;">BETA</sup></div>
+  <div class="tagline">The Market Cap Intelligence Quiz</div>
+  <div class="masthead-rule"></div>
+  <div class="masthead-rule2"></div>
+</div>
+
+<!-- Top bar -->
+<div id="top-bar">
+  <div>
+    <div class="score-label">Today's Score</div>
+    <div id="score-display">0 pts</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:10px;">
+    <div onclick="openLeaderboardModal()" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);padding:5px 12px;border-radius:2px;cursor:pointer;letter-spacing:0.5px;" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)'">🏆 Leaderboard</div>
+    <div id="user-pill" onclick="showModal()">▸ Sign in</div>
+  </div>
+</div>
+
+<!-- Leaderboard modal -->
+<div id="lb-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;padding:20px;">
+  <div style="background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--gold);border-radius:4px;padding:28px 24px;width:100%;max-width:420px;position:relative;">
+    <div onclick="document.getElementById('lb-modal-overlay').style.display='none'" style="position:absolute;top:14px;right:16px;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:16px;">Leaderboard</div>
+    <div class="lb-tabs">
+      <div class="lb-tab active" id="modal-tab-daily"  onclick="switchModalTab('daily')">Today</div>
+      <div class="lb-tab"        id="modal-tab-weekly" onclick="switchModalTab('weekly')">This Week</div>
+    </div>
+    <div class="lb-body" id="modal-lb-body"><div class="lb-empty">Loading…</div></div>
+  </div>
+</div>
+
+<!-- Progress -->
+<div id="progress">
+  <div class="prog-seg" id="prog-0"></div>
+  <div class="prog-seg" id="prog-1"></div>
+  <div class="prog-seg" id="prog-2"></div>
+  <div class="prog-seg" id="prog-3"></div>
+  <div class="prog-seg" id="prog-4"></div>
+</div>
+
+<!-- Already played today -->
+<div id="already-played" style="display:none;width:100%;max-width:620px;padding:0 20px;">
+  <div class="card-inner">
+    <!-- Leaderboard tabs up top -->
+    <div class="lb-tabs" style="margin-bottom:0;">
+      <div class="lb-tab active" id="ap-tab-daily"  onclick="switchApTab('daily')">Today</div>
+      <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">This Week</div>
+    </div>
+    <div class="lb-body" id="ap-lb-body" style="margin-bottom:20px;"><div class="lb-empty">Loading leaderboard…</div></div>
+    <!-- Their score + share + countdown below -->
+    <div style="border-top:1px solid var(--border2);padding-top:16px;text-align:center;">
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Your Score</div>
+      <div id="ap-score" style="font-family:'IBM Plex Mono',monospace;font-size:2.4rem;font-weight:600;color:var(--gold);line-height:1;">—</div>
+      <div id="ap-max" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:1px;margin-bottom:14px;"></div>
+      <button onclick="copyShare()" style="width:100%;padding:13px;background:var(--gold);color:#0a0a0a;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:6px;">▸ Copy Score to Share</button>
+      <div id="ap-copy-toast" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--green2);height:16px;margin-bottom:10px;"></div>
+      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);margin-bottom:4px;">Next puzzle in</div>
+      <div id="ap-countdown" style="font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:600;color:var(--text);">--:--:--</div>
+    </div>
+  </div>
+</div>
+
+<!-- Loading -->
+<div class="card" id="loading">
+  <div class="card-inner">
+    <div class="spinner"></div>
+    <p>Pulling market data from the wire…</p>
+  </div>
+</div>
+
+<!-- Game card -->
+<div class="card" id="game-card" style="display:none">
+  <div class="card-inner">
+    <div id="tier-badge" class="tier-badge"></div>
+    <div class="company-header">
+      <div style="flex:1;">
+        <div class="company-name"   id="company-name"></div>
+        <div class="company-ticker" id="company-ticker"></div>
+      </div>
+      <div class="company-avatar" id="company-avatar"></div>
+    </div>
+    <div class="company-meta">
+      <div class="meta-item"><span class="meta-label">CEO</span><span class="meta-value" id="company-ceo"></span></div>
+      <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value"  id="company-hq"></span></div>
+    </div>
+    <div class="company-description" id="company-description" style="display:none"></div>
+    <div class="company-funfact"     id="company-funfact"     style="display:none">
+      <span>▸</span><span id="fun-fact-text"></span>
+    </div>
+    <div class="question">— What is this company's market cap? —</div>
+    <div id="choices"></div>
+    <div id="feedback"></div>
+    <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+    <button id="next-btn"   onclick="nextRound()">Next Question →</button>
+  </div>
+</div>
+
+<!-- Results -->
+<div id="results">
+  <div class="card-inner" style="background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--gold);border-radius:4px;padding:24px 22px;max-width:620px;width:100%;">
+    <div id="practice-banner" style="display:none;background:#12100a;border:1px solid #3d3010;color:#c9a84c;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:10px 14px;border-radius:2px;margin-bottom:16px;letter-spacing:0.5px;">
+      🔁 PRACTICE MODE — This score won't count on the leaderboard. You already played today!
+    </div>
+    <div class="results-header">
+      <h2>Final Score</h2>
+      <div class="final-score" id="final-score"></div>
+      <div class="max-score-label" id="max-score-label"></div>
+    </div>
+    <div id="results-rows"></div>
+    <div id="percentile-line" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--gold);text-align:center;margin:10px 0 4px;letter-spacing:0.5px;"></div>
+    <div id="challenge-banner" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;text-align:center;padding:10px 14px;border-radius:2px;margin-bottom:10px;"></div>
+    <button id="share-btn"      onclick="copyShare()">▸ Copy Score to Share</button>
+    <button id="challenge-btn"  onclick="copyChallenge()" style="display:none;">🔗 Challenge a Friend</button>
+    <button id="play-again-btn" onclick="playAgain()">Play Again</button>
+    <div id="copy-toast"></div>
+
+    <!-- Leaderboards -->
+    <div class="lb-section">
+      <div class="lb-tabs">
+        <div class="lb-tab active" id="tab-daily"  onclick="switchTab('daily')">Today</div>
+        <div class="lb-tab"        id="tab-weekly" onclick="switchTab('weekly')">This Week</div>
+      </div>
+      <div class="lb-body" id="lb-body">
+        <div class="lb-empty">Loading leaderboard…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ── Ticker ────────────────────────────────────────────────────────
+  function buildTicker(data) {
+    const doubled = [...data, ...data];
+    return doubled.map(d =>
+      `<span class="ticker-item">${d.name} <span class="${d.change.startsWith("+")?"up":"down"}">${d.price} ${d.change}</span></span>`
+    ).join("");
+  }
+  (() => {
+    document.getElementById("edition-date").textContent =
+      new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+    fetch("/api/market-indices")
+      .then(r=>r.json())
+      .then(data=>{ if(data.length) document.getElementById("ticker").innerHTML=buildTicker(data); })
+      .catch(()=>{});  // silently fail — ticker stays empty on error
+  })();
+
+  // ── Avatar colors ────────────────────────────────────────────────
+  const AVATAR_COLORS = [
+    ["#1a1208","#c9a84c"],["#0d1a12","#3daa62"],["#1a0d12","#e05555"],
+    ["#0d1218","#60a5fa"],["#180d1a","#c084fc"],["#181208","#fb923c"],
+  ];
+  function avatarColor(t) {
+    let h=0; for(const c of t) h=(h*31+c.charCodeAt(0))&0xffff;
+    return AVATAR_COLORS[h%AVATAR_COLORS.length];
+  }
+  function tierInfo(pts) {
+    if(pts<=100) return {cls:"tier-easy",  label:"EASY — 100 PTS"};
+    if(pts<=200) return {cls:"tier-medium",label:"MEDIUM — 200 PTS"};
+    return             {cls:"tier-hard",  label:"HARD — 300 PTS"};
+  }
+
+  // ── User state ───────────────────────────────────────────────────
+  let currentUser = JSON.parse(localStorage.getItem("captap_user") || "null");
+
+  function updateUserPill() {
+    const pill = document.getElementById("user-pill");
+    pill.textContent = currentUser ? `▸ ${currentUser.username}` : "▸ Sign in";
+  }
+  updateUserPill();
+
+  function showModal() {
+    const isEdit = !!currentUser;
+    document.getElementById("modal-close").style.display    = isEdit ? "block" : "none";
+    document.getElementById("modal-logout").style.display   = isEdit ? "block" : "none";
+    document.getElementById("modal-title").textContent      = isEdit ? "Edit Profile" : "Welcome to CapTap";
+    document.getElementById("modal-subtitle").textContent   = isEdit
+      ? "You can update your username. Your email cannot be changed."
+      : "Enter your details to track your score and compete on the leaderboard. You only need to do this once.";
+    document.getElementById("modal-submit").textContent     = isEdit ? "Save Changes" : "Let's Play →";
+    const emailInput = document.getElementById("reg-email");
+    if(isEdit) {
+      emailInput.value    = currentUser.email;
+      emailInput.readOnly = true;
+      emailInput.style.opacity = "0.5";
+      emailInput.style.cursor  = "default";
+      document.getElementById("reg-username").value = currentUser.username;
+    } else {
+      emailInput.readOnly = false;
+      emailInput.style.opacity = "";
+      emailInput.style.cursor  = "";
+    }
+    document.getElementById("modal-error").textContent = "";
+    document.getElementById("modal-overlay").classList.add("open");
+  }
+
+  function hideModal() {
+    if(!currentUser) return; // can't dismiss if not logged in
+    document.getElementById("modal-overlay").classList.remove("open");
+  }
+
+  async function registerUser() {
+    const email    = document.getElementById("reg-email").value.trim();
+    const username = document.getElementById("reg-username").value.trim();
+    const errEl    = document.getElementById("modal-error");
+    errEl.textContent = "";
+
+    if(!email || !username) { errEl.textContent = "Both fields are required."; return; }
+    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "Enter a valid email."; return; }
+
+    const btnEl = document.getElementById("modal-submit");
+    btnEl.textContent = "Saving…";
+    try {
+      const res  = await fetch("/api/user", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email,username}) });
+      const data = await res.json();
+      if(data.error) { errEl.textContent = data.error; return; }
+      currentUser = data;
+      localStorage.setItem("captap_user", JSON.stringify(currentUser));
+      updateUserPill();
+      document.getElementById("modal-overlay").classList.remove("open");
+    } catch(e) {
+      errEl.textContent = "Connection error. Please try again.";
+    } finally {
+      btnEl.textContent = currentUser ? "Save Changes" : "Let's Play →";
+    }
+  }
+
+  function logoutUser() {
+    localStorage.removeItem("captap_user");
+    localStorage.removeItem("captap_played_date");
+    localStorage.removeItem("captap_puzzle_version");
+    localStorage.removeItem("captap_last_score");
+    localStorage.removeItem("captap_last_max");
+    currentUser = null;
+    // Reset game
+    puzzle=[]; current=0; totalScore=0; results=[]; selectedChoice=null; isPractice=false;
+    document.getElementById("results").style.display="none";
+    document.getElementById("game-card").style.display="none";
+    document.getElementById("already-played").style.display="none";
+    document.getElementById("progress").style.display="flex";
+    document.getElementById("score-display").textContent="0 pts";
+    document.getElementById("loading").style.display="block";
+    updateUserPill();
+    showModal();
+    init();
+  }
+
+  // Enter key in modal
+  document.getElementById("reg-username").addEventListener("keydown", e => { if(e.key==="Enter") registerUser(); });
+  document.getElementById("reg-email").addEventListener("keydown",    e => { if(e.key==="Enter") registerUser(); });
+
+  // ── Game state ───────────────────────────────────────────────────
+  let puzzle=[], current=0, totalScore=0, results=[], selectedChoice=null;
+  let activeTab = "daily";
+  let isPractice = false;
+  let currentPuzzleVersion = "1";
+  let myRank = null, myRankLabel = null, myPercentile = null;
+
+  // ── Challenge link detection ──────────────────────────────────────
+  const _urlParams = new URLSearchParams(window.location.search);
+  const challengerName  = _urlParams.get("c");
+  const challengerScore = parseInt(_urlParams.get("s") || "0", 10);
+
+  function todayStr() {
+    // Use EST date so puzzle resets at midnight Eastern time
+    return new Date().toLocaleDateString("en-CA", {timeZone: "America/New_York"});
+  }
+  function alreadyPlayedToday() {
+    return localStorage.getItem("captap_played_date") === todayStr() &&
+           localStorage.getItem("captap_puzzle_version") === currentPuzzleVersion;
+  }
+
+  function estCountdown() {
+    const now = new Date();
+    const est = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
+    const midnight = new Date(est); midnight.setHours(0,0,0,0); midnight.setDate(midnight.getDate()+1);
+    const diff = midnight - est;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  function showAlreadyPlayed() {
+    document.getElementById("loading").style.display = "none";
+    document.getElementById("progress").style.display = "none";
+    const ap = document.getElementById("already-played");
+    ap.style.display = "block";
+    // Show saved score from localStorage if available
+    const savedScore = localStorage.getItem("captap_last_score");
+    const savedMax   = localStorage.getItem("captap_last_max");
+    if(savedScore) {
+      document.getElementById("ap-score").textContent = savedScore;
+      document.getElementById("ap-max").textContent   = `OUT OF ${savedMax} PTS`;
+    }
+    // Countdown
+    document.getElementById("ap-countdown").textContent = estCountdown();
+    setInterval(() => {
+      document.getElementById("ap-countdown").textContent = estCountdown();
+    }, 1000);
+    switchApTab("daily");
+  }
+
+  async function switchApTab(tab) {
+    document.getElementById("ap-tab-daily").classList.toggle("active", tab==="daily");
+    document.getElementById("ap-tab-weekly").classList.toggle("active", tab==="weekly");
+    const body = document.getElementById("ap-lb-body");
+    body.innerHTML = `<div class="lb-empty">Loading…</div>`;
+    try {
+      const res = await fetch(`/api/leaderboard/${tab}`);
+      const data = await res.json();
+      body.innerHTML = renderLeaderboard(data, tab);
+    } catch(e) { body.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
+  }
+
+  async function openLeaderboardModal() {
+    document.getElementById("lb-modal-overlay").style.display = "flex";
+    switchModalTab("daily");
+  }
+  let modalActiveTab = "daily";
+  async function switchModalTab(tab) {
+    modalActiveTab = tab;
+    document.getElementById("modal-tab-daily").classList.toggle("active", tab==="daily");
+    document.getElementById("modal-tab-weekly").classList.toggle("active", tab==="weekly");
+    const body = document.getElementById("modal-lb-body");
+    body.innerHTML = `<div class="lb-empty">Loading…</div>`;
+    try {
+      const res = await fetch(`/api/leaderboard/${tab}`);
+      const data = await res.json();
+      body.innerHTML = renderLeaderboard(data, tab);
+    } catch(e) { body.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
+  }
+
+  function renderLeaderboard(data, tab) {
+    if(!data.length) return `<div class="lb-empty">No scores yet — be the first!</div>`;
+    const ordinal=n=>["1ST","2ND","3RD"][n-1]||`${n}TH`;
+    const rankClasses=["gold","silver","bronze"];
+    const scoreKey=tab==="daily"?"score":"avg_score";
+
+    // Compute competition ranks (ties share rank, next rank skips)
+    const ranks=[];
+    for(let i=0;i<data.length;i++){
+      if(i===0){ranks.push(1);continue;}
+      ranks.push(data[i][scoreKey]===data[i-1][scoreKey]?ranks[i-1]:i+1);
+    }
+    const tieCount=r=>ranks.filter(x=>x===r).length;
+
+    // Track user's rank + percentile for share text and percentile display
+    if(tab==="daily"&&currentUser&&!isPractice){
+      const myIdx=data.findIndex(r=>r.username===currentUser.username);
+      if(myIdx>=0){
+        myRank=ranks[myIdx];
+        const tied=tieCount(myRank)>1;
+        myRankLabel=(tied?"T-":"")+ordinal(myRank);
+        myPercentile=Math.round((data.length-myIdx)/data.length*100);
+        const pctEl=document.getElementById("percentile-line");
+        if(pctEl) { pctEl.textContent=`You beat ${myPercentile}% of players today`; pctEl.style.display="block"; }
+      }
+    }
+
+    return data.map((row,i)=>{
+      const r=ranks[i];
+      const tied=tieCount(r)>1;
+      const rankLabel=(tied?"T-":"")+ordinal(r);
+      const rankCls=r<=3?rankClasses[r-1]:"";
+      const isMe=currentUser&&row.username===currentUser.username;
+      const score=tab==="daily"?`${row.score} pts`:`avg ${row.avg_score} pts`;
+      const meta=tab==="daily"?`${row.pct}%`:`${row.days_played} game${row.days_played>1?"s":""}`;
+      return `<div class="lb-row">
+        <span class="lb-rank ${rankCls}">${rankLabel}</span>
+        <span class="lb-name ${isMe?"me":""}">${row.username}${isMe?" ◀":""}</span>
+        <span class="lb-meta">${meta}</span>
+        <span class="lb-score">${score}</span>
+      </div>`;
+    }).join("");
+  }
+
+  async function init() {
+    if(!currentUser) showModal();
+
+    // If already played today, skip puzzle fetch — go straight to leaderboard
+    if(localStorage.getItem("captap_played_date") === todayStr()) {
+      document.getElementById("loading").style.display = "none";
+      showAlreadyPlayed();
+      return;
+    }
+
+    const res  = await fetch("/api/puzzle");
+    const data = await res.json();
+    if(data.error) {
+      document.getElementById("loading").querySelector(".card-inner").innerHTML =
+        `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">ERROR: ${data.error}</p>`;
+      return;
+    }
+    currentPuzzleVersion = data.puzzle_version || "1";
+    isPractice = alreadyPlayedToday();
+
+    if(isPractice) {
+      puzzle = data.rounds;
+      showAlreadyPlayed();
+      return;
+    }
+
+    puzzle = data.rounds;
+    document.getElementById("loading").style.display = "none";
+    showRound(0);
+  }
+
+  function showRound(idx) {
+    selectedChoice = null;
+    const round = puzzle[idx];
+    document.getElementById("game-card").style.display = "block";
+
+    for(let i=0;i<5;i++) {
+      const s = document.getElementById(`prog-${i}`);
+      s.className = "prog-seg"+(i<idx?" done":i===idx?" active":"");
+    }
+
+    const tier = tierInfo(round.points_available);
+    const badge = document.getElementById("tier-badge");
+    badge.className = "tier-badge "+tier.cls;
+    badge.textContent = tier.label;
+
+    const avatar = document.getElementById("company-avatar");
+    avatar.style.background=""; avatar.style.color="";
+    if(round.logo_url) {
+      avatar.innerHTML=`<img src="${round.logo_url}" alt="${round.ticker}" onerror="this.onerror=null;fallbackAvatar('${round.ticker}');">`;
+    } else fallbackAvatar(round.ticker);
+
+    document.getElementById("company-name").textContent   = round.name;
+    document.getElementById("company-ticker").textContent = round.ticker;
+    document.getElementById("company-ceo").textContent    = round.ceo;
+    document.getElementById("company-hq").textContent     = round.headquarters;
+
+    const desc=document.getElementById("company-description");
+    if(round.description){
+      const SHORT=220;
+      const full=round.description;
+      if(full.length<=SHORT){
+        desc.innerHTML=full;
+      } else {
+        const snippet=full.slice(0,SHORT)+"…";
+        desc.innerHTML=`<span id="desc-short">${snippet} <a href="#" id="desc-toggle" style="color:var(--gold);text-decoration:none;font-size:0.7rem;">read more</a></span><span id="desc-full" style="display:none">${full} <a href="#" id="desc-toggle2" style="color:var(--gold);text-decoration:none;font-size:0.7rem;">show less</a></span>`;
+        desc.querySelector("#desc-toggle").onclick=e=>{e.preventDefault();desc.querySelector("#desc-short").style.display="none";desc.querySelector("#desc-full").style.display="inline";};
+        desc.querySelector("#desc-toggle2").onclick=e=>{e.preventDefault();desc.querySelector("#desc-full").style.display="none";desc.querySelector("#desc-short").style.display="inline";};
+      }
+      desc.style.display="block";
+    } else desc.style.display="none";
+
+    const fact=document.getElementById("company-funfact");
+    if(round.fun_fact){document.getElementById("fun-fact-text").textContent=round.fun_fact;fact.style.display="flex";}
+    else fact.style.display="none";
+
+    const container=document.getElementById("choices");
+    container.innerHTML="";
+    round.choices.forEach((cap,i)=>{
+      const btn=document.createElement("button");
+      btn.className="choice-btn"; btn.id=`choice-${i}`;
+      btn.innerHTML=cap;
+      btn.onclick=()=>selectChoice(i);
+      container.appendChild(btn);
+    });
+
+    document.getElementById("feedback").style.display="none";
+    document.getElementById("submit-btn").style.display="none";
+    document.getElementById("next-btn").style.display="none";
+    document.getElementById("next-btn").textContent=idx<4?"Next Question →":"Final Results →";
+  }
+
+  function fallbackAvatar(ticker) {
+    const avatar=document.getElementById("company-avatar");
+    const [bg,fg]=avatarColor(ticker);
+    avatar.style.background=bg; avatar.style.color=fg;
+    avatar.innerHTML=`<span>${ticker.slice(0,3)}</span>`;
+  }
+
+  function selectChoice(idx) {
+    selectedChoice=idx;
+    document.querySelectorAll(".choice-btn").forEach((b,i)=>b.classList.toggle("selected",i===idx));
+    document.getElementById("submit-btn").style.display="block";
+  }
+
+  function submitAnswer() {
+    if(selectedChoice===null) return;
+    const round=puzzle[current];
+    document.querySelectorAll(".choice-btn").forEach(b=>{b.disabled=true;b.classList.remove("selected");});
+    document.getElementById("submit-btn").style.display="none";
+
+    const correct=selectedChoice===round.correct_index;
+    document.getElementById(`choice-${selectedChoice}`).classList.add(correct?"correct":"wrong");
+    if(!correct) document.getElementById(`choice-${round.correct_index}`).classList.add("correct");
+
+    const pts=correct?round.points_available:0;
+    totalScore+=pts; results.push({round,correct,pts});
+    document.getElementById("score-display").textContent=`${totalScore} pts`;
+
+    const fb=document.getElementById("feedback");
+    fb.style.display="block"; fb.className=correct?"correct":"wrong";
+    fb.textContent=correct?`✔ CORRECT  +${pts} PTS`:`✘ INCORRECT — ANSWER: ${round.actual_cap}`;
+    document.getElementById("next-btn").style.display="block";
+  }
+
+  function nextRound() {
+    current++;
+    current>=puzzle.length?showResults():showRound(current);
+  }
+
+  async function showResults() {
+    document.getElementById("game-card").style.display="none";
+    document.getElementById("progress").style.display="none";
+
+    const maxTotal=puzzle.reduce((s,r)=>s+r.points_available,0);
+    document.getElementById("final-score").textContent=totalScore;
+    document.getElementById("max-score-label").textContent=`OUT OF ${maxTotal} PTS`;
+
+    const rows=document.getElementById("results-rows");
+    rows.innerHTML="";
+    results.forEach(r=>{
+      const div=document.createElement("div");
+      div.className="result-row";
+      div.innerHTML=`
+        <span class="result-icon">${r.correct?"✔":"✘"}</span>
+        <div class="result-company">${r.round.name}<div class="result-ticker">${r.round.ticker} · actual: ${r.round.actual_cap}</div></div>
+        <div class="result-pts ${r.correct?"earned":"missed"}">${r.pts}/${r.round.points_available}</div>`;
+      rows.appendChild(div);
+    });
+
+    document.getElementById("results").style.display="block";
+
+    // Show practice mode banner if applicable
+    const practiceBanner = document.getElementById("practice-banner");
+    practiceBanner.style.display = isPractice ? "block" : "none";
+
+    // Save score if logged in and not practice
+    if(currentUser && !isPractice) {
+      const roundResults=results.map(r=>({ticker:r.round.ticker,correct:r.correct,pts:r.pts}));
+      await fetch("/api/scores",{
+        method:"POST", headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({user_id:currentUser.id,score:totalScore,max_score:maxTotal,round_results:roundResults})
+      });
+      localStorage.setItem("captap_played_date", todayStr());
+      localStorage.setItem("captap_puzzle_version", currentPuzzleVersion);
+      localStorage.setItem("captap_last_score", totalScore);
+      localStorage.setItem("captap_last_max", maxTotal);
+    }
+
+    // Show challenge result if arriving via challenge link
+    if(challengerName && challengerScore && !isPractice) {
+      const banner=document.getElementById("challenge-banner");
+      if(banner) {
+        const diff=totalScore-challengerScore;
+        if(diff>0) banner.innerHTML=`🏆 You beat <b>${challengerName}</b>'s score of ${challengerScore} by ${diff} pts!`;
+        else if(diff<0) banner.innerHTML=`😔 <b>${challengerName}</b> beat you by ${Math.abs(diff)} pts (${challengerScore} vs your ${totalScore})`;
+        else banner.innerHTML=`🤝 Tied with <b>${challengerName}</b> at ${totalScore} pts!`;
+        banner.style.background=diff>=0?"#0a1a0a":"#1a0a0a";
+        banner.style.border=`1px solid ${diff>=0?"#1a4a1a":"#4a1a1a"}`;
+        banner.style.color=diff>=0?"#4caf50":"#ef5350";
+        banner.style.display="block";
+      }
+    }
+
+    // Show challenge button for non-practice games
+    const challengeBtn=document.getElementById("challenge-btn");
+    if(challengeBtn && !isPractice) challengeBtn.style.display="block";
+
+    // Load leaderboard
+    loadLeaderboard("daily");
+  }
+
+  // ── Leaderboards ──────────────────────────────────────────────────
+  function switchTab(tab) {
+    activeTab=tab;
+    document.getElementById("tab-daily").classList.toggle("active",tab==="daily");
+    document.getElementById("tab-weekly").classList.toggle("active",tab==="weekly");
+    loadLeaderboard(tab);
+  }
+
+  async function loadLeaderboard(tab) {
+    const body=document.getElementById("lb-body");
+    body.innerHTML=`<div class="lb-empty">Loading…</div>`;
+    try {
+      const res=await fetch(`/api/leaderboard/${tab}`);
+      const data=await res.json();
+      body.innerHTML=renderLeaderboard(data, tab);
+    } catch(e) {
+      body.innerHTML=`<div class="lb-empty">Could not load leaderboard.</div>`;
+    }
+  }
+
+  // ── Share ────────────────────────────────────────────────────────
+  const APP_URL = "https://cs-training-week1-production.up.railway.app";
+
+  function buildShareText() {
+    const date=new Date().toLocaleDateString("en-US",{timeZone:"America/New_York",month:"long",day:"numeric",year:"numeric"});
+
+    // Already-played user visiting fresh (no results in memory)
+    if(!results.length) {
+      const s=localStorage.getItem("captap_last_score")||"?";
+      return `captap.app BETA — ${date}\nScore: ${s}/1000\n\nCan you beat me? ${APP_URL}`;
+    }
+
+    const tierEmoji=pts=>pts===100?"🏅":pts===200?"🎯":"🌞";
+    const emojiGrid=results.map(r=>r.correct?"✅":"❌").join("");
+    const roundParts=results.map(r=>`${r.pts}${tierEmoji(r.round.points_available)}`).join(" ");
+    const header=isPractice?"CapTap BETA Practice":"captap.app BETA";
+    let rankLine="";
+    if(myRankLabel&&!isPractice) rankLine=`\n${myRankLabel} today · Beat ${myPercentile}% of players`;
+    return `${header} — ${date}\n${emojiGrid}\n${roundParts}\nFinal score: ${totalScore}/1000${rankLine}\n\nCan you beat me? ${APP_URL}`;
+  }
+
+  function _showToast(text) {
+    ["copy-toast","ap-copy-toast"].forEach(id=>{
+      const el=document.getElementById(id);
+      if(el){ el.textContent=text; setTimeout(()=>el.textContent="",2500); }
+    });
+  }
+
+  function copyShare() {
+    navigator.clipboard.writeText(buildShareText())
+      .then(()=>_showToast("▸ Copied to clipboard"))
+      .catch(()=>_showToast("▸ Copy failed — select and copy manually"));
+  }
+
+  function copyChallenge() {
+    const url=`${APP_URL}/?c=${encodeURIComponent(currentUser.username)}&s=${totalScore}`;
+    navigator.clipboard.writeText(url)
+      .then(()=>_showToast("▸ Challenge link copied!"))
+      .catch(()=>_showToast("▸ Copy failed"));
+  }
+
+  // ── Play again ───────────────────────────────────────────────────
+  function playAgain() {
+    current=0;totalScore=0;results=[];selectedChoice=null;
+    document.getElementById("results").style.display="none";
+    document.getElementById("already-played").style.display="none";
+    document.getElementById("progress").style.display="flex";
+    document.getElementById("score-display").textContent="0 pts";
+    document.getElementById("loading").style.display="block";
+    init();
+  }
+
+  init();
+</script>
+</body>
+</html>

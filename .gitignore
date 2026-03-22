@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+
+# Secrets
+.env
+
+# Snapshots / cache (generated at runtime)
+src/*_snapshot.json
+src/*_leaderboard.json
+
+# OS
+.DS_Store
