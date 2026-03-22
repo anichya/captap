@@ -40,6 +40,8 @@ class Company:
     logo_url: str = ""
     description: str = ""
     fun_fact: str = ""
+    revenue_billion_usd: float = 0.0
+    full_time_employees: int = 0
 
     @property
     def points_available(self) -> int:
@@ -154,15 +156,20 @@ def fetch_company(display_ticker: str, yf_ticker: str, name: str) -> Company | N
 
     summary = info.get("longBusinessSummary", "")
 
-    # Fun fact: pull the 2nd meaningful sentence from the business summary,
-    # which tends to be more specific than the dry opener ("X Inc. is a company…")
+    # description = first sentence only; fun_fact = second sentence only
+    description = ""
     fun_fact = ""
     if summary:
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 40]
+        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 20]
+        if sentences:
+            description = sentences[0]
         if len(sentences) >= 2:
             fun_fact = sentences[1]
-        elif sentences:
-            fun_fact = sentences[0]
+
+    # Expert mode fields
+    total_revenue = info.get("totalRevenue")
+    revenue_billion_usd = float(total_revenue) / 1_000_000_000 if total_revenue else 0.0
+    full_time_employees = int(info.get("fullTimeEmployees") or 0)
 
     return Company(
         name=name,
@@ -171,8 +178,10 @@ def fetch_company(display_ticker: str, yf_ticker: str, name: str) -> Company | N
         ceo=ceo,
         headquarters=headquarters,
         logo_url=logo_url,
-        description=summary,
+        description=description,
         fun_fact=fun_fact,
+        revenue_billion_usd=revenue_billion_usd,
+        full_time_employees=full_time_employees,
     )
 
 
@@ -202,6 +211,8 @@ def get_companies_by_tickers(
                 logo_url=str(cached.get("logo_url", "")),
                 description=str(cached.get("description", "")),
                 fun_fact=str(cached.get("fun_fact", "")),
+                revenue_billion_usd=float(cached.get("revenue_billion_usd", 0.0)),
+                full_time_employees=int(cached.get("full_time_employees", 0)),
             ))
         elif ticker in ticker_to_yf:
             yf_ticker, name = ticker_to_yf[ticker]
@@ -215,6 +226,8 @@ def get_companies_by_tickers(
                     "logo_url": company.logo_url,
                     "description": company.description,
                     "fun_fact": company.fun_fact,
+                    "revenue_billion_usd": company.revenue_billion_usd,
+                    "full_time_employees": company.full_time_employees,
                 }
                 companies.append(company)
     return companies
@@ -253,6 +266,8 @@ def get_daily_companies(
                 logo_url=str(cached.get("logo_url", "")),
                 description=str(cached.get("description", "")),
                 fun_fact=str(cached.get("fun_fact", "")),
+                revenue_billion_usd=float(cached.get("revenue_billion_usd", 0.0)),
+                full_time_employees=int(cached.get("full_time_employees", 0)),
             )
         else:
             company = fetch_company(display_ticker, yf_ticker, name)
@@ -266,6 +281,8 @@ def get_daily_companies(
                 "logo_url": company.logo_url,
                 "description": company.description,
                 "fun_fact": company.fun_fact,
+                "revenue_billion_usd": company.revenue_billion_usd,
+                "full_time_employees": company.full_time_employees,
             }
 
         pts = company.points_available

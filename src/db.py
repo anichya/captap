@@ -50,6 +50,14 @@ def init_db() -> None:
                 )
             """)
             cur.execute("""
+                ALTER TABLE scores
+                ADD COLUMN IF NOT EXISTS total_time_seconds FLOAT
+            """)
+            cur.execute("""
+                ALTER TABLE scores
+                ADD COLUMN IF NOT EXISTS game_mode VARCHAR(20) DEFAULT 'daily'
+            """)
+            cur.execute("""
                 CREATE TABLE IF NOT EXISTS daily_puzzle (
                     played_at      DATE PRIMARY KEY,
                     tickers        TEXT[] NOT NULL,
@@ -60,6 +68,23 @@ def init_db() -> None:
             cur.execute("""
                 ALTER TABLE daily_puzzle
                 ADD COLUMN IF NOT EXISTS companies_data JSONB
+            """)
+            cur.execute("""
+                ALTER TABLE daily_puzzle
+                ADD COLUMN IF NOT EXISTS hl_data JSONB
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS battles (
+                    id               SERIAL PRIMARY KEY,
+                    challenger_id    INTEGER REFERENCES users(id),
+                    opponent_id      INTEGER REFERENCES users(id),
+                    played_at        DATE NOT NULL,
+                    challenger_score INTEGER,
+                    opponent_score   INTEGER,
+                    winner_id        INTEGER REFERENCES users(id),
+                    created_at       TIMESTAMP DEFAULT NOW(),
+                    UNIQUE(challenger_id, opponent_id, played_at)
+                )
             """)
 
 
@@ -93,6 +118,8 @@ def save_score(
     max_score: int,
     round_results: list,
     played_at: str | None = None,
+    total_time_seconds: float | None = None,
+    game_mode: str = "daily",
 ) -> bool:
     """Save today's score. Returns False if user already submitted today."""
     with get_conn() as conn:
@@ -100,20 +127,20 @@ def save_score(
             if played_at:
                 cur.execute(
                     """
-                    INSERT INTO scores (user_id, score, max_score, round_results, played_at)
-                    VALUES (%s, %s, %s, %s, %s)
+                    INSERT INTO scores (user_id, score, max_score, round_results, played_at, total_time_seconds, game_mode)
+                    VALUES (%s, %s, %s, %s, %s, %s, %s)
                     ON CONFLICT (user_id, played_at) DO NOTHING
                     """,
-                    (user_id, score, max_score, json.dumps(round_results), played_at),
+                    (user_id, score, max_score, json.dumps(round_results), played_at, total_time_seconds, game_mode),
                 )
             else:
                 cur.execute(
                     """
-                    INSERT INTO scores (user_id, score, max_score, round_results)
-                    VALUES (%s, %s, %s, %s)
+                    INSERT INTO scores (user_id, score, max_score, round_results, total_time_seconds, game_mode)
+                    VALUES (%s, %s, %s, %s, %s, %s)
                     ON CONFLICT (user_id, played_at) DO NOTHING
                     """,
-                    (user_id, score, max_score, json.dumps(round_results)),
+                    (user_id, score, max_score, json.dumps(round_results), total_time_seconds, game_mode),
                 )
             return cur.rowcount > 0
 
@@ -133,11 +160,13 @@ def get_daily_leaderboard() -> list[dict]:
                     u.username,
                     s.score,
                     s.max_score,
-                    ROUND(s.score::numeric / NULLIF(s.max_score, 0) * 100) AS pct
+                    ROUND(s.score::numeric / NULLIF(s.max_score, 0) * 100) AS pct,
+                    s.total_time_seconds
                 FROM scores s
                 JOIN users u ON s.user_id = u.id
                 WHERE s.played_at = %s
-                ORDER BY s.score DESC
+                  AND (s.game_mode = 'daily' OR s.game_mode IS NULL)
+                ORDER BY s.score DESC, s.total_time_seconds ASC NULLS LAST
             """, (_est_today(),))
             return [dict(r) for r in cur.fetchall()]
 
@@ -163,6 +192,7 @@ def get_weekly_leaderboard() -> list[dict]:
                 FROM scores s
                 JOIN users u ON s.user_id = u.id
                 WHERE s.played_at >= %s
+                  AND (s.game_mode = 'daily' OR s.game_mode IS NULL)
                 GROUP BY u.id, u.username
                 ORDER BY avg_score DESC
             """, (_est_week_start(),))
@@ -230,3 +260,80 @@ def lock_puzzle(est_date: str, tickers: list[str], companies_data: list[dict]) -
                    WHERE daily_puzzle.companies_data IS NULL""",
                 (est_date, tickers, json.dumps(companies_data)),
             )
+
+
+def get_locked_hl_puzzle(est_date: str) -> list | None:
+    """Return today's locked H-or-L puzzle data, or None."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                "SELECT hl_data FROM daily_puzzle WHERE played_at = %s",
+                (est_date,),
+            )
+            row = cur.fetchone()
+            if not row or not row[0]:
+                return None
+            return row[0]
+
+
+def lock_hl_puzzle(est_date: str, hl_data: list) -> None:
+    """Persist today's H-or-L pairs."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO daily_puzzle (played_at, tickers, hl_data)
+                   VALUES (%s, %s, %s)
+                   ON CONFLICT (played_at) DO UPDATE
+                     SET hl_data = EXCLUDED.hl_data
+                   WHERE daily_puzzle.hl_data IS NULL""",
+                (est_date, [], json.dumps(hl_data)),
+            )
+
+
+def get_all_users() -> list[dict]:
+    """Return all users sorted by username."""
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("SELECT id, username FROM users ORDER BY username ASC")
+            return [dict(r) for r in cur.fetchall()]
+
+
+def save_battle(
+    challenger_id: int,
+    opponent_id: int,
+    challenger_score: int,
+    opponent_score: int,
+    played_at: str,
+) -> bool:
+    """Save a battle result. Returns True if saved, False if already exists."""
+    winner_id = challenger_id if challenger_score >= opponent_score else opponent_id
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO battles (challenger_id, opponent_id, challenger_score, opponent_score, winner_id, played_at)
+                   VALUES (%s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (challenger_id, opponent_id, played_at) DO NOTHING""",
+                (challenger_id, opponent_id, challenger_score, opponent_score, winner_id, played_at),
+            )
+            return cur.rowcount > 0
+
+
+def get_battle_leaderboard() -> list[dict]:
+    """Return [{username, wins, losses, win_pct}] sorted by wins."""
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute("""
+                SELECT
+                    u.username,
+                    COUNT(CASE WHEN b.winner_id = u.id THEN 1 END) AS wins,
+                    COUNT(CASE WHEN b.winner_id != u.id THEN 1 END) AS losses,
+                    CASE WHEN COUNT(*) = 0 THEN 0
+                         ELSE ROUND(COUNT(CASE WHEN b.winner_id = u.id THEN 1 END)::numeric / COUNT(*) * 100)
+                    END AS win_pct
+                FROM users u
+                JOIN battles b ON b.challenger_id = u.id OR b.opponent_id = u.id
+                GROUP BY u.id, u.username
+                HAVING COUNT(*) > 0
+                ORDER BY wins DESC, win_pct DESC
+            """)
+            return [dict(r) for r in cur.fetchall()]
