@@ -35,9 +35,24 @@
     .up { color: #a8ffb8; } .down { color: #ffaaaa; }
     @keyframes scroll-ticker { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
 
+    /* ── Top Nav Strip (Change 3) ── */
+    #top-nav {
+      width: 100%; background: var(--surface);
+      border-bottom: 1px solid var(--border2);
+      display: flex; max-width: 100%;
+    }
+    .nav-btn {
+      flex: 1; padding: 10px; background: transparent; border: none;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
+      color: var(--muted); cursor: pointer; letter-spacing: 0.5px; text-align: center;
+      transition: color 0.15s; border-right: 1px solid var(--border2);
+    }
+    .nav-btn:last-child { border-right: none; }
+    .nav-btn:hover { color: var(--gold); }
+
     /* ── Masthead ── */
     #masthead {
-      width: 100%; max-width: 620px; padding: 28px 20px 0;
+      width: 100%; max-width: 620px; padding: 24px 20px 0;
       display: flex; flex-direction: column; align-items: center; margin-bottom: 4px;
     }
     .edition-line {
@@ -46,24 +61,35 @@
       display: flex; gap: 16px;
     }
     .brand { font-family: "Playfair Display", serif; font-size: 3.2rem; font-weight: 900; letter-spacing: -2px; }
-    .brand sup { font-size: 0.9rem; color: var(--gold); vertical-align: super; margin-left: 4px; }
     .tagline { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 2px; text-transform: uppercase; margin-top: 6px; }
     .masthead-rule  { width: 100%; height: 1px; background: linear-gradient(90deg, transparent, var(--gold), transparent); margin: 14px 0 0; }
-    .masthead-rule2 { width: 100%; height: 3px; background: var(--gold); margin-bottom: 20px; }
+    .masthead-rule2 { width: 100%; height: 3px; background: var(--gold); margin-bottom: 10px; }
 
-    /* ── Score + nav bar ── */
-    #top-bar {
+    /* ── Score display below masthead ── */
+    #score-area {
       width: 100%; max-width: 620px; padding: 0 20px;
-      display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;
+      text-align: center; margin-bottom: 12px;
     }
-    .score-label { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
-    #score-display { font-family: "IBM Plex Mono", monospace; font-size: 1.4rem; font-weight: 600; color: var(--gold); }
-    #user-pill {
-      font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600;
-      color: var(--muted); background: var(--surface2); border: 1px solid var(--border2);
-      padding: 5px 12px; border-radius: 2px; cursor: pointer; letter-spacing: 0.5px;
+    .score-label { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
+    #score-display { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; color: var(--gold); }
+
+    /* ── Mode tabs ── */
+    #mode-tabs {
+      width: 100%; max-width: 620px; padding: 0 20px; margin-bottom: 16px;
+      display: flex; gap: 0;
     }
-    #user-pill:hover { color: var(--gold); border-color: var(--gold); }
+    .mode-tab {
+      flex: 1; padding: 8px 4px; background: var(--surface2);
+      border: 1px solid var(--border2); border-bottom: none;
+      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; font-weight: 600;
+      letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
+      cursor: pointer; text-align: center; transition: all 0.15s;
+    }
+    .mode-tab:first-child { border-radius: 2px 0 0 0; }
+    .mode-tab:last-child  { border-radius: 0 2px 0 0; }
+    .mode-tab.active { background: var(--surface); color: var(--gold); border-top: 2px solid var(--gold); }
+    .mode-tab:hover:not(.active) { color: var(--text); }
+    #mode-content { width: 100%; max-width: 620px; padding: 0 20px; }
 
     /* ── Progress ── */
     #progress { display: flex; gap: 6px; width: 100%; max-width: 620px; padding: 0 20px; margin-bottom: 20px; }
@@ -72,7 +98,7 @@
     .prog-seg.done   { background: var(--muted); }
 
     /* ── Cards ── */
-    .card { width: 100%; max-width: 620px; padding: 0 20px; }
+    .card { width: 100%; }
     .card-inner {
       background: var(--surface); border: 1px solid var(--border2);
       border-top: 3px solid var(--gold); border-radius: 4px; padding: 24px 22px;
@@ -97,23 +123,24 @@
     .tier-medium { background: #1a1508; color: var(--gold2);  border: 1px solid #3d3010; }
     .tier-hard   { background: #1f0d0d; color: #e05555;       border: 1px solid #3d1a1a; }
 
-    /* ── Company ── */
-    .company-header { display: flex; align-items: flex-start; gap: 16px; margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
-    .company-avatar {
-      width: 60px; height: 60px; border-radius: 4px; flex-shrink: 0;
-      display: flex; align-items: center; justify-content: center;
-      font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600;
-      overflow: hidden; background: var(--surface2); border: 1px solid var(--border2);
-    }
-    .company-avatar img { width: 100%; height: 100%; object-fit: contain; padding: 7px; background: #fff; border-radius: 3px; }
+    /* ── Company (no avatar — Change 7) ── */
+    .company-header { margin-bottom: 14px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
     .company-name { font-family: "Playfair Display", serif; font-size: 1.3rem; font-weight: 700; line-height: 1.2; margin-bottom: 5px; }
-    .company-ticker { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600; background: var(--surface2); color: var(--gold); padding: 2px 8px; border-radius: 2px; border: 1px solid var(--border2); letter-spacing: 1px; }
+    .company-ticker { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; font-weight: 600; background: var(--surface2); color: var(--gold); padding: 2px 8px; border-radius: 2px; border: 1px solid var(--border2); letter-spacing: 1px; display: inline-block; }
     .company-meta { display: flex; gap: 24px; flex-wrap: wrap; font-size: 0.78rem; margin-bottom: 12px; }
     .meta-item { display: flex; flex-direction: column; gap: 2px; }
     .meta-label { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
     .meta-value { color: var(--text); font-weight: 500; }
+
+    /* Fun fact FIRST, then description (Change 2) */
+    .company-funfact { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--gold); border: 1px solid #2a2010; background: #12100a; padding: 8px 12px; margin-bottom: 10px; display: flex; gap: 8px; border-radius: 2px; }
     .company-description { font-size: 0.8rem; color: var(--muted); line-height: 1.65; border-left: 2px solid var(--gold); padding: 8px 12px; margin-bottom: 10px; background: var(--surface2); }
-    .company-funfact { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--gold); border: 1px solid #2a2010; background: #12100a; padding: 8px 12px; margin-bottom: 18px; display: flex; gap: 8px; border-radius: 2px; }
+
+    /* ── Round timer (Change 1) ── */
+    #round-timer {
+      font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
+      color: var(--muted); text-align: right; margin-bottom: 10px; letter-spacing: 1px;
+    }
 
     /* ── Choices ── */
     .question { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
@@ -151,8 +178,17 @@
     #feedback.correct { background: #0d1f12; border: 1px solid var(--green2); color: var(--green2); }
     #feedback.wrong   { background: #1f0d0d; border: 1px solid var(--red);    color: #e05555; }
 
+    /* ── Auto-advance timer bar ── */
+    #auto-advance-bar {
+      height: 3px; background: var(--border2); border-radius: 2px;
+      margin: 8px 0 0; overflow: hidden; display: none;
+    }
+    #auto-advance-bar-inner {
+      height: 100%; background: var(--gold); width: 100%; border-radius: 2px;
+    }
+
     /* ── Results ── */
-    #results { display: none; width: 100%; max-width: 620px; padding: 0 20px; }
+    #results { display: none; width: 100%; }
     .results-header { text-align: center; margin-bottom: 20px; padding-bottom: 18px; border-bottom: 1px solid var(--border2); }
     .results-header h2 { font-family: "Playfair Display", serif; font-size: 1.5rem; font-weight: 700; margin-bottom: 4px; }
     .final-score { font-family: "IBM Plex Mono", monospace; font-size: 3.5rem; font-weight: 600; color: var(--gold); line-height: 1; margin: 8px 0 2px; }
@@ -209,15 +245,6 @@
     .perf-label {
       font-family: "IBM Plex Mono", monospace; font-size: 0.68rem; font-weight: 600;
       letter-spacing: 2px; text-transform: uppercase; color: var(--gold); margin-bottom: 6px;
-    }
-
-    /* ── Auto-advance timer bar ── */
-    #auto-advance-bar {
-      height: 3px; background: var(--border2); border-radius: 2px;
-      margin: 8px 0 0; overflow: hidden; display: none;
-    }
-    #auto-advance-bar-inner {
-      height: 100%; background: var(--gold); width: 100%; border-radius: 2px;
     }
 
     /* ── Stats grid ── */
@@ -298,6 +325,116 @@
       cursor: pointer; transition: opacity 0.15s;
     }
     #modal-submit:hover { opacity: 0.85; }
+
+    /* ── Leaderboard modal ── */
+    #lb-modal-overlay {
+      display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85);
+      z-index: 100; align-items: center; justify-content: center; padding: 20px;
+    }
+    #lb-modal-overlay.open { display: flex; }
+    #lb-modal {
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: 3px solid var(--gold); border-radius: 4px;
+      padding: 28px 24px; width: 100%; max-width: 420px; position: relative;
+    }
+
+    /* ── Higher or Lower mode ── */
+    #hl-game { display: none; }
+    #hl-progress { display: flex; gap: 6px; margin-bottom: 16px; }
+    .hl-prog-seg { flex: 1; height: 4px; background: var(--border2); transition: background 0.3s; }
+    .hl-prog-seg.active { background: var(--gold); }
+    .hl-prog-seg.done   { background: var(--muted); }
+    #hl-score-display { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; color: var(--gold); text-align: center; margin-bottom: 14px; }
+    .hl-question { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; text-align: center; margin-bottom: 16px; }
+    #hl-pairs { display: flex; gap: 14px; }
+    .hl-card {
+      flex: 1; min-height: 80px; background: var(--surface2); border: 2px solid var(--border2);
+      border-radius: 4px; padding: 20px 14px; display: flex; flex-direction: column;
+      align-items: center; justify-content: center; cursor: pointer; transition: all 0.15s;
+      text-align: center;
+    }
+    .hl-card:hover:not(.disabled) { border-color: var(--gold); background: #1a1608; }
+    .hl-card.selected { border-color: var(--gold2); background: #1a1608; }
+    .hl-card.correct  { border-color: var(--green2); background: #0d1f12; }
+    .hl-card.wrong    { border-color: var(--red);    background: #1f0d0d; }
+    .hl-card.disabled { cursor: default; }
+    .hl-card-name { font-family: "Playfair Display", serif; font-size: 1.1rem; font-weight: 700; line-height: 1.2; margin-bottom: 6px; }
+    .hl-card-ticker { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--gold); letter-spacing: 1px; }
+    .hl-card-reveal { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--muted); margin-top: 8px; }
+    .hl-vs { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--muted); display: flex; align-items: center; padding: 0 2px; }
+    #hl-feedback { display: none; text-align: center; font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; font-weight: 600; padding: 10px; border-radius: 2px; margin-top: 14px; }
+    #hl-feedback.correct { background: #0d1f12; border: 1px solid var(--green2); color: var(--green2); }
+    #hl-feedback.wrong   { background: #1f0d0d; border: 1px solid var(--red);    color: #e05555; }
+    @media (max-width: 480px) {
+      #hl-pairs { flex-direction: column; }
+      .hl-vs { justify-content: center; }
+    }
+
+    /* ── Expert mode ── */
+    #expert-game { display: none; }
+    #expert-progress { display: flex; gap: 6px; margin-bottom: 16px; }
+    .exp-prog-seg { flex: 1; height: 4px; background: var(--border2); transition: background 0.3s; }
+    .exp-prog-seg.active { background: var(--gold); }
+    .exp-prog-seg.done   { background: var(--muted); }
+    #expert-score-display { font-family: "IBM Plex Mono", monospace; font-size: 0.85rem; color: var(--gold); text-align: center; margin-bottom: 14px; }
+    .expert-hints { display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+    .expert-hint-box {
+      background: var(--surface2); border: 1px solid var(--border2); border-radius: 3px;
+      padding: 10px 14px; flex: 1; min-width: 120px;
+    }
+    .expert-input-row { display: flex; align-items: center; gap: 8px; margin-bottom: 14px; }
+    .expert-input-label { font-family: "IBM Plex Mono", monospace; font-size: 0.9rem; font-weight: 600; color: var(--gold); }
+    #expert-input {
+      flex: 1; padding: 11px 14px; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 2px; color: var(--text); font-family: "IBM Plex Mono", monospace;
+      font-size: 0.9rem; outline: none; transition: border-color 0.15s;
+    }
+    #expert-input:focus { border-color: var(--gold); }
+    #expert-submit-btn {
+      width: 100%; padding: 13px; background: var(--gold); color: #0a0a0a;
+      border: none; border-radius: 2px; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.15s; margin-bottom: 10px;
+    }
+    #expert-submit-btn:hover { opacity: 0.85; }
+    #expert-next-btn {
+      display: none; width: 100%; padding: 13px; background: var(--green); color: var(--text);
+      border: none; border-radius: 2px; font-family: "IBM Plex Mono", monospace;
+      font-size: 0.8rem; font-weight: 600; letter-spacing: 1px; text-transform: uppercase;
+      cursor: pointer; transition: opacity 0.15s;
+    }
+    #expert-next-btn:hover { opacity: 0.85; }
+    #expert-feedback { display: none; padding: 12px 14px; border-radius: 2px; margin-bottom: 10px; font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; }
+    #expert-feedback.great  { background: #0d1f12; border: 1px solid var(--green2); color: var(--green2); }
+    #expert-feedback.good   { background: #1a1508; border: 1px solid var(--gold2); color: var(--gold2); }
+    #expert-feedback.ok     { background: #18140a; border: 1px solid var(--muted); color: var(--muted); }
+    #expert-feedback.miss   { background: #1f0d0d; border: 1px solid var(--red); color: #e05555; }
+
+    /* ── Battle Royale mode ── */
+    #battle-mode { display: none; }
+    .battle-panel { background: var(--surface); border: 1px solid var(--border2); border-top: 3px solid var(--gold); border-radius: 4px; padding: 20px; margin-bottom: 16px; }
+    .battle-panel h3 { font-family: "Playfair Display", serif; font-size: 1.1rem; font-weight: 700; margin-bottom: 14px; }
+    #battle-search {
+      width: 100%; padding: 10px 14px; background: var(--surface2); border: 1px solid var(--border2);
+      border-radius: 2px; color: var(--text); font-family: "IBM Plex Mono", monospace;
+      font-size: 0.85rem; outline: none; margin-bottom: 12px; transition: border-color 0.15s;
+    }
+    #battle-search:focus { border-color: var(--gold); }
+    #battle-user-list { max-height: 240px; overflow-y: auto; }
+    .battle-user-row {
+      display: flex; align-items: center; padding: 9px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.82rem;
+    }
+    .battle-user-row:last-child { border-bottom: none; }
+    .battle-username { flex: 1; font-weight: 600; }
+    .battle-challenge-btn {
+      padding: 5px 12px; background: transparent; border: 1px solid var(--border2);
+      color: var(--muted); font-family: "IBM Plex Mono", monospace; font-size: 0.65rem;
+      font-weight: 600; letter-spacing: 0.5px; cursor: pointer; border-radius: 2px;
+      transition: all 0.12s;
+    }
+    .battle-challenge-btn:hover { color: var(--gold); border-color: var(--gold); }
+    #battle-copy-toast { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--green2); text-align: center; min-height: 16px; margin-top: 6px; }
   </style>
 </head>
 <body>
@@ -324,175 +461,371 @@
   </div>
 </div>
 
+<!-- Leaderboard modal -->
+<div id="lb-modal-overlay">
+  <div id="lb-modal">
+    <div onclick="closeLbModal()" style="position:absolute;top:14px;right:16px;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</div>
+    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:16px;">Leaderboard</div>
+    <div class="lb-tabs">
+      <div class="lb-tab active" id="modal-tab-daily"   onclick="switchModalTab('daily')">Today</div>
+      <div class="lb-tab"        id="modal-tab-weekly"  onclick="switchModalTab('weekly')">This Week</div>
+      <div class="lb-tab"        id="modal-tab-battles" onclick="switchModalTab('battles')">Battles</div>
+    </div>
+    <div class="lb-body" id="modal-lb-body"><div class="lb-empty">Loading…</div></div>
+  </div>
+</div>
+
 <!-- Ticker -->
 <div id="ticker-wrap"><div class="ticker-inner" id="ticker"></div></div>
+
+<!-- Top Nav Strip (Change 3) -->
+<div id="top-nav">
+  <button class="nav-btn" onclick="openLbModal()">🏆 Leaderboard</button>
+  <button class="nav-btn" id="user-nav-btn" onclick="showModal()">▸ Sign In</button>
+</div>
 
 <!-- Masthead -->
 <div id="masthead">
   <div class="edition-line">
     <span id="edition-date"></span>
   </div>
-  <div class="brand">CapTap<sup style="font-size:0.45em;letter-spacing:1px;color:var(--gold);vertical-align:super;">BETA</sup></div>
+  <div class="brand">CapTap</div>
   <div class="tagline">The Market Cap Intelligence Quiz</div>
   <div class="masthead-rule"></div>
   <div class="masthead-rule2"></div>
 </div>
 
-<!-- Top bar -->
-<div id="top-bar">
-  <div>
-    <div class="score-label">Today's Score</div>
-    <div id="score-display">0 pts</div>
-  </div>
-  <div style="display:flex;align-items:center;gap:10px;">
-    <div onclick="openLeaderboardModal()" style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;font-weight:600;color:var(--muted);background:var(--surface2);border:1px solid var(--border2);padding:5px 12px;border-radius:2px;cursor:pointer;letter-spacing:0.5px;" onmouseover="this.style.color='var(--gold)';this.style.borderColor='var(--gold)'" onmouseout="this.style.color='var(--muted)';this.style.borderColor='var(--border2)'">🏆 Leaderboard</div>
-    <div id="user-pill" onclick="showModal()">▸ Sign in</div>
-  </div>
+<!-- Score display (below masthead, small + centered) -->
+<div id="score-area">
+  <div class="score-label">Today's Score</div>
+  <div id="score-display">0 pts</div>
 </div>
 
-<!-- Leaderboard modal -->
-<div id="lb-modal-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;align-items:center;justify-content:center;padding:20px;">
-  <div style="background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--gold);border-radius:4px;padding:28px 24px;width:100%;max-width:420px;position:relative;">
-    <div onclick="document.getElementById('lb-modal-overlay').style.display='none'" style="position:absolute;top:14px;right:16px;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</div>
-    <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:16px;">Leaderboard</div>
-    <div class="lb-tabs">
-      <div class="lb-tab active" id="modal-tab-daily"  onclick="switchModalTab('daily')">Today</div>
-      <div class="lb-tab"        id="modal-tab-weekly" onclick="switchModalTab('weekly')">This Week</div>
-    </div>
-    <div class="lb-body" id="modal-lb-body"><div class="lb-empty">Loading…</div></div>
-  </div>
+<!-- Mode Tabs (Change 5) -->
+<div id="mode-tabs">
+  <div class="mode-tab active" id="mode-tab-daily"   onclick="switchMode('daily')">Daily Quiz</div>
+  <div class="mode-tab"        id="mode-tab-hl"      onclick="switchMode('hl')">Higher/Lower</div>
+  <div class="mode-tab"        id="mode-tab-expert"  onclick="switchMode('expert')">Expert</div>
+  <div class="mode-tab"        id="mode-tab-battle"  onclick="switchMode('battle')">Battle Royale</div>
 </div>
 
-<!-- Progress -->
-<div id="progress">
-  <div class="prog-seg" id="prog-0"></div>
-  <div class="prog-seg" id="prog-1"></div>
-  <div class="prog-seg" id="prog-2"></div>
-  <div class="prog-seg" id="prog-3"></div>
-  <div class="prog-seg" id="prog-4"></div>
-</div>
+<!-- Mode content wrapper -->
+<div id="mode-content">
 
-<!-- Already played today -->
-<div id="already-played" style="display:none;width:100%;max-width:620px;padding:0 20px;">
-  <div class="card-inner">
-    <!-- Leaderboard tabs up top -->
-    <div class="lb-tabs" style="margin-bottom:0;">
-      <div class="lb-tab active" id="ap-tab-daily"  onclick="switchApTab('daily')">Today</div>
-      <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">This Week</div>
-    </div>
-    <div class="lb-body" id="ap-lb-body" style="margin-bottom:20px;"><div class="lb-empty">Loading leaderboard…</div></div>
-    <!-- Personal stats -->
-    <div id="user-stats-block" class="stats-grid" style="display:none;margin-top:16px;">
-      <div class="stat-cell"><div class="stat-num" id="stat-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
-      <div class="stat-cell"><div class="stat-num" id="stat-played">—</div><div class="stat-lbl">Played</div></div>
-      <div class="stat-cell"><div class="stat-num" id="stat-best">—</div><div class="stat-lbl">Best</div></div>
-      <div class="stat-cell"><div class="stat-num" id="stat-avg">—</div><div class="stat-lbl">Avg</div></div>
+  <!-- ═══════════════════════════════════════════════ DAILY QUIZ MODE ═══ -->
+  <div id="daily-mode">
+
+    <!-- Progress -->
+    <div id="progress" style="display:flex;gap:6px;margin-bottom:20px;">
+      <div class="prog-seg" id="prog-0"></div>
+      <div class="prog-seg" id="prog-1"></div>
+      <div class="prog-seg" id="prog-2"></div>
+      <div class="prog-seg" id="prog-3"></div>
+      <div class="prog-seg" id="prog-4"></div>
     </div>
 
-    <!-- Their score + share + countdown below -->
-    <div style="border-top:1px solid var(--border2);padding-top:16px;text-align:center;">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Your Score</div>
-      <div id="ap-score" style="font-family:'IBM Plex Mono',monospace;font-size:2.4rem;font-weight:600;color:var(--gold);line-height:1;">—</div>
-      <div id="ap-max" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:1px;margin-bottom:14px;"></div>
-      <button onclick="copyShare()" style="width:100%;padding:13px;background:var(--gold);color:#0a0a0a;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:6px;">▸ Copy Score to Share</button>
-      <div id="ap-copy-toast" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--green2);height:16px;margin-bottom:10px;"></div>
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);margin-bottom:4px;">Next puzzle in</div>
-      <div id="ap-countdown" style="font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:600;color:var(--text);">--:--:--</div>
-    </div>
-  </div>
-</div>
-
-<!-- Loading -->
-<div class="card" id="loading">
-  <div class="card-inner">
-    <div class="spinner"></div>
-    <p>Pulling market data from the wire…</p>
-  </div>
-</div>
-
-<!-- Game card -->
-<div class="card" id="game-card" style="display:none">
-  <div class="card-inner">
-    <div id="tier-badge" class="tier-badge"></div>
-    <div class="company-header">
-      <div style="flex:1;">
-        <div class="company-name"   id="company-name"></div>
-        <div class="company-ticker" id="company-ticker"></div>
+    <!-- Already played today -->
+    <div id="already-played" style="display:none;">
+      <div class="card-inner">
+        <div class="lb-tabs" style="margin-bottom:0;">
+          <div class="lb-tab active" id="ap-tab-daily"  onclick="switchApTab('daily')">Today</div>
+          <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">This Week</div>
+        </div>
+        <div class="lb-body" id="ap-lb-body" style="margin-bottom:20px;"><div class="lb-empty">Loading leaderboard…</div></div>
+        <div id="user-stats-block" class="stats-grid" style="display:none;margin-top:16px;">
+          <div class="stat-cell"><div class="stat-num" id="stat-streak">—</div><div class="stat-lbl">🔥 Streak</div></div>
+          <div class="stat-cell"><div class="stat-num" id="stat-played">—</div><div class="stat-lbl">Played</div></div>
+          <div class="stat-cell"><div class="stat-num" id="stat-best">—</div><div class="stat-lbl">Best</div></div>
+          <div class="stat-cell"><div class="stat-num" id="stat-avg">—</div><div class="stat-lbl">Avg</div></div>
+        </div>
+        <div style="border-top:1px solid var(--border2);padding-top:16px;text-align:center;">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;">Your Score</div>
+          <div id="ap-score" style="font-family:'IBM Plex Mono',monospace;font-size:2.4rem;font-weight:600;color:var(--gold);line-height:1;">—</div>
+          <div id="ap-max" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);letter-spacing:1px;margin-bottom:14px;"></div>
+          <button onclick="copyShare()" style="width:100%;padding:13px;background:var(--gold);color:#0a0a0a;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.8rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-bottom:6px;">▸ Copy Score to Share</button>
+          <div id="ap-copy-toast" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--green2);height:16px;margin-bottom:10px;"></div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.7rem;color:var(--muted);margin-bottom:4px;">Next puzzle in</div>
+          <div id="ap-countdown" style="font-family:'IBM Plex Mono',monospace;font-size:1.2rem;font-weight:600;color:var(--text);">--:--:--</div>
+        </div>
       </div>
-      <div class="company-avatar" id="company-avatar"></div>
-    </div>
-    <div class="company-meta">
-      <div class="meta-item"><span class="meta-label">CEO</span><span class="meta-value" id="company-ceo"></span></div>
-      <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value"  id="company-hq"></span></div>
-    </div>
-    <div class="company-description" id="company-description" style="display:none"></div>
-    <div class="company-funfact"     id="company-funfact"     style="display:none">
-      <span>▸</span><span id="fun-fact-text"></span>
-    </div>
-    <div class="question">— What is this company's market cap? —</div>
-    <div id="choices"></div>
-    <div id="feedback"></div>
-    <div id="auto-advance-bar"><div id="auto-advance-bar-inner"></div></div>
-    <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
-    <button id="next-btn"   onclick="nextRound()">Next Question →</button>
-  </div>
-</div>
-
-<!-- Results -->
-<div id="results">
-  <div class="card-inner" style="background:var(--surface);border:1px solid var(--border2);border-top:3px solid var(--gold);border-radius:4px;padding:24px 22px;max-width:620px;width:100%;">
-    <div id="practice-banner" style="display:none;background:#12100a;border:1px solid #3d3010;color:#c9a84c;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:10px 14px;border-radius:2px;margin-bottom:16px;letter-spacing:0.5px;">
-      🔁 PRACTICE MODE — This score won't count on the leaderboard. You already played today!
-    </div>
-    <div class="results-header">
-      <div class="perf-label" id="perf-label"></div>
-      <h2>Final Score</h2>
-      <div class="final-score" id="final-score">0</div>
-      <div class="max-score-label" id="max-score-label"></div>
-    </div>
-    <div id="results-rows"></div>
-    <div id="percentile-line" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--gold);text-align:center;margin:10px 0 4px;letter-spacing:0.5px;"></div>
-    <div id="challenge-banner" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;text-align:center;padding:10px 14px;border-radius:2px;margin-bottom:10px;"></div>
-    <button id="share-btn"      onclick="copyShare()">▸ Copy Score to Share</button>
-    <button id="challenge-btn"  onclick="copyChallenge()" style="display:none;">🔗 Challenge a Friend</button>
-    <button id="play-again-btn" onclick="playAgain()">Play Again</button>
-    <div id="copy-toast"></div>
-    <div id="guest-cta" class="guest-cta" style="display:none;">
-      <p>Create a free account to save your score and appear on the leaderboard.</p>
-      <button class="guest-cta-btn" onclick="showModal()">Save My Score →</button>
     </div>
 
-    <!-- Leaderboards -->
-    <div class="lb-section">
+    <!-- Loading -->
+    <div class="card" id="loading">
+      <div class="card-inner">
+        <div class="spinner"></div>
+        <p>Pulling market data from the wire…</p>
+      </div>
+    </div>
+
+    <!-- Game card -->
+    <div class="card" id="game-card" style="display:none">
+      <div class="card-inner">
+        <div id="tier-badge" class="tier-badge"></div>
+        <!-- Round timer (Change 1) -->
+        <div id="round-timer">0:00.0</div>
+        <div class="company-header">
+          <div class="company-name"   id="company-name"></div>
+          <div class="company-ticker" id="company-ticker"></div>
+        </div>
+        <div class="company-meta">
+          <div class="meta-item"><span class="meta-label">CEO</span><span class="meta-value" id="company-ceo"></span></div>
+          <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value"  id="company-hq"></span></div>
+        </div>
+        <!-- Fun fact FIRST (Change 2) -->
+        <div class="company-funfact" id="company-funfact" style="display:none">
+          <span>▸</span><span id="fun-fact-text"></span>
+        </div>
+        <!-- Description truncated to 120 chars (Change 2) -->
+        <div class="company-description" id="company-description" style="display:none"></div>
+        <div class="question">— What is this company's market cap? —</div>
+        <div id="choices"></div>
+        <div id="feedback"></div>
+        <div id="auto-advance-bar"><div id="auto-advance-bar-inner"></div></div>
+        <button id="submit-btn" onclick="submitAnswer()">Submit Answer</button>
+        <button id="next-btn"   onclick="nextRound()">Next Question →</button>
+      </div>
+    </div>
+
+    <!-- Results -->
+    <div id="results" style="display:none;">
+      <div class="card-inner">
+        <div id="practice-banner" style="display:none;background:#12100a;border:1px solid #3d3010;color:#c9a84c;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;padding:10px 14px;border-radius:2px;margin-bottom:16px;letter-spacing:0.5px;">
+          🔁 PRACTICE MODE — This score won't count on the leaderboard. You already played today!
+        </div>
+        <div class="results-header">
+          <div class="perf-label" id="perf-label"></div>
+          <h2>Final Score</h2>
+          <div class="final-score" id="final-score">0</div>
+          <div class="max-score-label" id="max-score-label"></div>
+          <!-- Time stats (Change 1) -->
+          <div id="time-stats" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--muted);margin-top:6px;"></div>
+        </div>
+        <div id="results-rows"></div>
+        <div id="percentile-line" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--gold);text-align:center;margin:10px 0 4px;letter-spacing:0.5px;"></div>
+        <div id="challenge-banner" style="display:none;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;text-align:center;padding:10px 14px;border-radius:2px;margin-bottom:10px;"></div>
+        <button id="share-btn"      onclick="copyShare()">▸ Copy Score to Share</button>
+        <button id="play-again-btn" onclick="playAgain()">Play Again</button>
+        <div id="copy-toast"></div>
+        <div id="guest-cta" class="guest-cta" style="display:none;">
+          <p>Create a free account to save your score and appear on the leaderboard.</p>
+          <button class="guest-cta-btn" onclick="showModal()">Save My Score →</button>
+        </div>
+        <!-- Leaderboards -->
+        <div class="lb-section">
+          <div class="lb-tabs">
+            <div class="lb-tab active" id="tab-daily"  onclick="switchTab('daily')">Today</div>
+            <div class="lb-tab"        id="tab-weekly" onclick="switchTab('weekly')">This Week</div>
+          </div>
+          <div class="lb-body" id="lb-body">
+            <div class="lb-empty">Loading leaderboard…</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /daily-mode -->
+
+  <!-- ════════════════════════════════════════ HIGHER OR LOWER MODE ═══ -->
+  <div id="hl-mode" style="display:none;">
+    <div class="card">
+      <div class="card-inner">
+        <!-- HL Loading -->
+        <div id="hl-loading">
+          <div class="spinner"></div>
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--muted);text-align:center;">Loading pairs…</p>
+        </div>
+        <!-- HL Game -->
+        <div id="hl-game">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);text-align:center;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">HIGHER OR LOWER — MARKET CAP</div>
+          <div id="hl-progress"></div>
+          <div id="hl-score-display">Score: 0 / 1000</div>
+          <div class="hl-question">Which company has a higher market cap?</div>
+          <div id="hl-pairs">
+            <div class="hl-card" id="hl-card-a" onclick="hlSelectCard('a')">
+              <div class="hl-card-name" id="hl-name-a"></div>
+              <div class="hl-card-ticker" id="hl-ticker-a"></div>
+              <div class="hl-card-reveal" id="hl-reveal-a" style="display:none;"></div>
+            </div>
+            <div class="hl-vs">VS</div>
+            <div class="hl-card" id="hl-card-b" onclick="hlSelectCard('b')">
+              <div class="hl-card-name" id="hl-name-b"></div>
+              <div class="hl-card-ticker" id="hl-ticker-b"></div>
+              <div class="hl-card-reveal" id="hl-reveal-b" style="display:none;"></div>
+            </div>
+          </div>
+          <div id="hl-feedback"></div>
+        </div>
+        <!-- HL Results -->
+        <div id="hl-results" style="display:none;">
+          <div class="results-header">
+            <div class="perf-label" id="hl-perf-label"></div>
+            <h2>Higher / Lower</h2>
+            <div class="final-score" id="hl-final-score">0</div>
+            <div class="max-score-label">OUT OF 1000 PTS</div>
+          </div>
+          <div id="hl-results-rows"></div>
+          <button onclick="copyShare()" style="display:block;width:100%;padding:14px;background:var(--gold);color:#0a0a0a;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:20px;">▸ Copy Score to Share</button>
+          <button onclick="resetHlMode()" style="display:block;width:100%;padding:14px;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:8px;">Play Again</button>
+          <div id="hl-guest-cta" class="guest-cta" style="display:none;">
+            <p>Create a free account to save your score and appear on the leaderboard.</p>
+            <button class="guest-cta-btn" onclick="showModal()">Save My Score →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /hl-mode -->
+
+  <!-- ═══════════════════════════════════════════════ EXPERT MODE ════ -->
+  <div id="expert-mode" style="display:none;">
+    <div class="card">
+      <div class="card-inner">
+        <div id="expert-loading">
+          <div class="spinner"></div>
+          <p style="font-family:'IBM Plex Mono',monospace;font-size:0.75rem;color:var(--muted);text-align:center;">Loading expert puzzle…</p>
+        </div>
+        <div id="expert-game">
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);text-align:center;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:10px;">EXPERT MODE — ESTIMATE THE MARKET CAP</div>
+          <div id="expert-progress"></div>
+          <div id="expert-score-display">Score: 0 / 1500</div>
+          <div class="company-header">
+            <div class="company-name" id="exp-company-name"></div>
+            <div class="company-ticker" id="exp-company-ticker"></div>
+          </div>
+          <div class="company-meta" style="margin-bottom:14px;">
+            <div class="meta-item"><span class="meta-label">CEO</span><span class="meta-value" id="exp-ceo"></span></div>
+            <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value" id="exp-hq"></span></div>
+          </div>
+          <div class="company-funfact" id="exp-funfact" style="display:none;">
+            <span>▸</span><span id="exp-fun-fact-text"></span>
+          </div>
+          <div class="company-description" id="exp-description" style="display:none;"></div>
+          <!-- Expert hints -->
+          <div class="expert-hints">
+            <div class="expert-hint-box" id="exp-revenue-box" style="display:none;">
+              <div class="meta-label">Annual Revenue</div>
+              <div class="meta-value" id="exp-revenue" style="font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:600;color:var(--gold);"></div>
+            </div>
+            <div class="expert-hint-box" id="exp-employees-box" style="display:none;">
+              <div class="meta-label">Employees</div>
+              <div class="meta-value" id="exp-employees" style="font-family:'IBM Plex Mono',monospace;font-size:0.9rem;font-weight:600;color:var(--gold);"></div>
+            </div>
+          </div>
+          <div style="font-family:'IBM Plex Mono',monospace;font-size:0.65rem;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:8px;">Your estimate of market cap (in billions $)</div>
+          <div class="expert-input-row">
+            <span class="expert-input-label">$</span>
+            <input id="expert-input" type="text" placeholder="e.g. 250" />
+            <span class="expert-input-label">B</span>
+          </div>
+          <div id="expert-feedback"></div>
+          <button id="expert-submit-btn" onclick="expertSubmit()">Submit Estimate</button>
+          <button id="expert-next-btn" onclick="expertNextRound()">Next →</button>
+        </div>
+        <div id="expert-results" style="display:none;">
+          <div class="results-header">
+            <div class="perf-label" id="exp-perf-label"></div>
+            <h2>Expert Results</h2>
+            <div class="final-score" id="exp-final-score">0</div>
+            <div class="max-score-label">OUT OF 1500 PTS</div>
+          </div>
+          <div id="expert-results-rows"></div>
+          <button onclick="copyShare()" style="display:block;width:100%;padding:14px;background:var(--gold);color:#0a0a0a;border:none;border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:20px;">▸ Copy Score to Share</button>
+          <button onclick="resetExpertMode()" style="display:block;width:100%;padding:14px;background:transparent;color:var(--muted);border:1px solid var(--border2);border-radius:2px;font-family:'IBM Plex Mono',monospace;font-size:0.75rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;cursor:pointer;margin-top:8px;">Play Again</button>
+          <div id="exp-guest-cta" class="guest-cta" style="display:none;">
+            <p>Create a free account to save your score and appear on the leaderboard.</p>
+            <button class="guest-cta-btn" onclick="showModal()">Save My Score →</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div><!-- /expert-mode -->
+
+  <!-- ══════════════════════════════════════════ BATTLE ROYALE MODE ═══ -->
+  <div id="battle-mode" style="display:none;">
+    <!-- Challenge panel -->
+    <div class="battle-panel">
+      <h3>Challenge a Player</h3>
+      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.5;">Play today's Daily Quiz, then send a challenge link to a friend. When they finish, the battle result is auto-recorded.</p>
+      <input id="battle-search" type="text" placeholder="Search players…" oninput="filterBattleUsers()" />
+      <div id="battle-user-list"><div class="lb-empty">Loading players…</div></div>
+      <div id="battle-copy-toast"></div>
+    </div>
+    <!-- Battle standings -->
+    <div class="battle-panel">
+      <h3>Battle Standings</h3>
       <div class="lb-tabs">
-        <div class="lb-tab active" id="tab-daily"  onclick="switchTab('daily')">Today</div>
-        <div class="lb-tab"        id="tab-weekly" onclick="switchTab('weekly')">This Week</div>
+        <div class="lb-tab active" style="border-radius:2px 2px 0 0;">Wins / Losses</div>
       </div>
-      <div class="lb-body" id="lb-body">
-        <div class="lb-empty">Loading leaderboard…</div>
-      </div>
+      <div class="lb-body" id="battle-lb-body"><div class="lb-empty">Loading…</div></div>
     </div>
-  </div>
-</div>
+  </div><!-- /battle-mode -->
+
+</div><!-- /mode-content -->
 
 <script>
-  // ── Helpers ──────────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // CONSTANTS & STATE
+  // ═══════════════════════════════════════════════════════════════
+  const APP_URL = "https://captap.app";
+
+  // Daily quiz state
+  let puzzle = [], current = 0, totalScore = 0, results = [], selectedChoice = null;
+  let activeTab = "daily";
+  let isPractice = false;
+  let currentPuzzleVersion = "1";
+  let myRank = null, myRankLabel = null, myPercentile = null;
+  let userStreak = 0;
+  let autoAdvanceTimer = null;
+
+  // Timer state (Change 1)
+  let roundTimerInterval = null;
+  let roundStartTime = 0;
+  let roundTimes = []; // elapsed seconds per round
+  let totalGameTime = 0;
+
+  // Current mode
+  let currentMode = "daily";
+
+  // H/L state
+  let hlPairs = [], hlCurrent = 0, hlScore = 0, hlResults = [];
+
+  // Expert state
+  let expertRounds = [], expertCurrent = 0, expertScore = 0, expertResults = [];
+
+  // Battle state
+  let allBattleUsers = [];
+
+  // User
+  let currentUser = JSON.parse(localStorage.getItem("captap_user") || "null");
+
+  // URL params
+  const _urlParams = new URLSearchParams(window.location.search);
+  const challengerName  = _urlParams.get("c");
+  const challengerScore = parseInt(_urlParams.get("s") || "0", 10);
+  // Battle params
+  const battleChallengerIdParam = parseInt(_urlParams.get("battle") || "0", 10);
+  const battleOpponentIdParam   = parseInt(_urlParams.get("opp") || "0", 10);
+
+  // ═══════════════════════════════════════════════════════════════
+  // HELPERS
+  // ═══════════════════════════════════════════════════════════════
+
   function getPerformanceLabel(score, max) {
-    if(score === max)        return "PERFECT SCORE";
-    if(score / max >= 0.8)  return "MARKET WIZARD";
-    if(score / max >= 0.6)  return "SHARP ANALYST";
-    if(score / max >= 0.4)  return "DECENT TRADER";
+    if (score === max)        return "PERFECT SCORE";
+    if (score / max >= 0.8)  return "MARKET WIZARD";
+    if (score / max >= 0.6)  return "SHARP ANALYST";
+    if (score / max >= 0.4)  return "DECENT TRADER";
     return "BACK TO BUSINESS SCHOOL";
   }
 
   function animateScore(targetEl, to, duration) {
     let start = null;
     function step(ts) {
-      if(!start) start = ts;
+      if (!start) start = ts;
       const progress = Math.min((ts - start) / duration, 1);
       const eased = 1 - Math.pow(1 - progress, 3);
       targetEl.textContent = Math.round(eased * to);
-      if(progress < 1) requestAnimationFrame(step);
+      if (progress < 1) requestAnimationFrame(step);
       else {
         targetEl.textContent = to;
         targetEl.classList.add("score-glow");
@@ -509,7 +842,7 @@
     };
     const colors = isPerfect ? palettes.perfect : palettes.high;
     const count  = isPerfect ? 100 : 55;
-    for(let i = 0; i < count; i++) {
+    for (let i = 0; i < count; i++) {
       setTimeout(() => {
         const el = document.createElement("div");
         el.className = "confetti-piece";
@@ -518,67 +851,116 @@
         el.style.width  = (Math.random() * 5 + 5) + "px";
         el.style.height = (Math.random() * 8 + 7) + "px";
         el.style.background = colors[Math.floor(Math.random() * colors.length)];
-        el.style.animationDuration  = (Math.random() * 0.9 + 0.9) + "s";
-        el.style.animationDelay     = "0s";
+        el.style.animationDuration = (Math.random() * 0.9 + 0.9) + "s";
+        el.style.animationDelay    = "0s";
         document.body.appendChild(el);
         setTimeout(() => el.remove(), 2500);
       }, Math.random() * 700);
     }
   }
 
-  async function fetchAndShowStats(userId) {
-    try {
-      const res  = await fetch(`/api/stats/${userId}`);
-      const data = await res.json();
-      if(data.error) return;
-      userStreak = data.streak;
-      document.getElementById("stat-streak").textContent = data.streak;
-      document.getElementById("stat-played").textContent = data.games_played;
-      document.getElementById("stat-best").textContent   = data.best_score;
-      document.getElementById("stat-avg").textContent    = data.avg_score;
-      document.getElementById("user-stats-block").style.display = "grid";
-    } catch(e) {}
+  function todayStr() {
+    return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
   }
 
-  // ── Ticker ────────────────────────────────────────────────────────
+  function alreadyPlayedToday() {
+    return localStorage.getItem("captap_played_date") === todayStr() &&
+           localStorage.getItem("captap_puzzle_version") === currentPuzzleVersion;
+  }
+
+  function estCountdown() {
+    const now = new Date();
+    const est = new Date(now.toLocaleString("en-US", { timeZone: "America/New_York" }));
+    const midnight = new Date(est);
+    midnight.setHours(0, 0, 0, 0);
+    midnight.setDate(midnight.getDate() + 1);
+    const diff = midnight - est;
+    const h = Math.floor(diff / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  }
+
+  function tierInfo(pts) {
+    if (pts <= 100) return { cls: "tier-easy",   label: "EASY — 100 PTS" };
+    if (pts <= 200) return { cls: "tier-medium", label: "MEDIUM — 200 PTS" };
+    return             { cls: "tier-hard",   label: "HARD — 300 PTS" };
+  }
+
+  function formatTime(sec) {
+    if (!sec && sec !== 0) return "—";
+    const m = Math.floor(sec / 60);
+    const s = (sec % 60).toFixed(1);
+    return `${m}:${parseFloat(s) < 10 ? "0" : ""}${s}`;
+  }
+
+  function _showToast(text) {
+    ["copy-toast","ap-copy-toast"].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) { el.textContent = text; setTimeout(() => el.textContent = "", 2500); }
+    });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // ROUND TIMER (Change 1)
+  // ═══════════════════════════════════════════════════════════════
+
+  function startRoundTimer() {
+    stopRoundTimer();
+    roundStartTime = Date.now();
+    const el = document.getElementById("round-timer");
+    roundTimerInterval = setInterval(() => {
+      const elapsed = (Date.now() - roundStartTime) / 1000;
+      const m = Math.floor(elapsed / 60);
+      const s = elapsed % 60;
+      const sf = s.toFixed(1).padStart(4, "0");
+      el.textContent = `${m}:${sf}`;
+    }, 100);
+  }
+
+  function stopRoundTimer() {
+    if (roundTimerInterval) {
+      clearInterval(roundTimerInterval);
+      roundTimerInterval = null;
+    }
+  }
+
+  function recordRoundTime() {
+    stopRoundTimer();
+    const elapsed = (Date.now() - roundStartTime) / 1000;
+    roundTimes.push(elapsed);
+    return elapsed;
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // TICKER
+  // ═══════════════════════════════════════════════════════════════
+
   function buildTicker(data) {
     const doubled = [...data, ...data];
     return doubled.map(d =>
-      `<span class="ticker-item">${d.name} <span class="${d.change.startsWith("+")?"up":"down"}">${d.price} ${d.change}</span></span>`
+      `<span class="ticker-item">${d.name} <span class="${d.change.startsWith("+") ? "up" : "down"}">${d.price} ${d.change}</span></span>`
     ).join("");
   }
+
   (() => {
     document.getElementById("edition-date").textContent =
-      new Date().toLocaleDateString("en-US",{weekday:"long",month:"long",day:"numeric",year:"numeric"});
+      new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
     fetch("/api/market-indices")
-      .then(r=>r.json())
-      .then(data=>{ if(data.length) document.getElementById("ticker").innerHTML=buildTicker(data); })
-      .catch(()=>{});  // silently fail — ticker stays empty on error
+      .then(r => r.json())
+      .then(data => { if (data.length) document.getElementById("ticker").innerHTML = buildTicker(data); })
+      .catch(() => {});
   })();
 
-  // ── Avatar colors ────────────────────────────────────────────────
-  const AVATAR_COLORS = [
-    ["#1a1208","#c9a84c"],["#0d1a12","#3daa62"],["#1a0d12","#e05555"],
-    ["#0d1218","#60a5fa"],["#180d1a","#c084fc"],["#181208","#fb923c"],
-  ];
-  function avatarColor(t) {
-    let h=0; for(const c of t) h=(h*31+c.charCodeAt(0))&0xffff;
-    return AVATAR_COLORS[h%AVATAR_COLORS.length];
-  }
-  function tierInfo(pts) {
-    if(pts<=100) return {cls:"tier-easy",  label:"EASY — 100 PTS"};
-    if(pts<=200) return {cls:"tier-medium",label:"MEDIUM — 200 PTS"};
-    return             {cls:"tier-hard",  label:"HARD — 300 PTS"};
-  }
+  // ═══════════════════════════════════════════════════════════════
+  // USER STATE & NAV (Change 3)
+  // ═══════════════════════════════════════════════════════════════
 
-  // ── User state ───────────────────────────────────────────────────
-  let currentUser = JSON.parse(localStorage.getItem("captap_user") || "null");
-
-  function updateUserPill() {
-    const pill = document.getElementById("user-pill");
-    pill.textContent = currentUser ? `▸ ${currentUser.username}` : "▸ Sign in";
+  function updateUserNavBtn() {
+    const btn = document.getElementById("user-nav-btn");
+    btn.textContent = currentUser ? `▸ ${currentUser.username}` : "▸ Sign In";
   }
-  updateUserPill();
+  updateUserNavBtn();
 
   function showModal() {
     const isEdit = !!currentUser;
@@ -590,7 +972,7 @@
       : "Enter your details to track your score and compete on the leaderboard. You only need to do this once.";
     document.getElementById("modal-submit").textContent     = isEdit ? "Save Changes" : "Let's Play →";
     const emailInput = document.getElementById("reg-email");
-    if(isEdit) {
+    if (isEdit) {
       emailInput.value    = currentUser.email;
       emailInput.readOnly = true;
       emailInput.style.opacity = "0.5";
@@ -606,7 +988,7 @@
   }
 
   function hideModal() {
-    if(!currentUser) return; // can't dismiss if not logged in
+    if (!currentUser) return;
     document.getElementById("modal-overlay").classList.remove("open");
   }
 
@@ -616,34 +998,38 @@
     const errEl    = document.getElementById("modal-error");
     errEl.textContent = "";
 
-    if(!email || !username) { errEl.textContent = "Both fields are required."; return; }
-    if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "Enter a valid email."; return; }
+    if (!email || !username) { errEl.textContent = "Both fields are required."; return; }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { errEl.textContent = "Enter a valid email."; return; }
 
     const btnEl = document.getElementById("modal-submit");
     btnEl.textContent = "Saving…";
     try {
-      const res  = await fetch("/api/user", { method:"POST", headers:{"Content-Type":"application/json"}, body:JSON.stringify({email,username}) });
+      const res  = await fetch("/api/user", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ email, username }) });
       const data = await res.json();
-      if(data.error) { errEl.textContent = data.error; return; }
+      if (data.error) { errEl.textContent = data.error; return; }
       currentUser = data;
       localStorage.setItem("captap_user", JSON.stringify(currentUser));
-      updateUserPill();
+      updateUserNavBtn();
       document.getElementById("modal-overlay").classList.remove("open");
 
-      // If a guest just finished a game, retroactively save their score
-      if(results.length > 0 && !isPractice) {
-        const maxTotal = puzzle.reduce((s,r) => s + r.points_available, 0);
-        const roundResults = results.map(r => ({ticker:r.round.ticker, correct:r.correct, pts:r.pts}));
+      // Retroactively save score if guest just finished (Change 6)
+      if (results.length > 0 && !isPractice) {
+        const maxTotal = puzzle.reduce((s, r) => s + r.points_available, 0);
+        const roundResults = results.map(r => ({ ticker: r.round.ticker, correct: r.correct, pts: r.pts, time: r.time }));
         await fetch("/api/scores", {
-          method:"POST", headers:{"Content-Type":"application/json"},
-          body:JSON.stringify({user_id:currentUser.id, score:totalScore, max_score:maxTotal, round_results:roundResults})
+          method: "POST", headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: currentUser.id, score: totalScore, max_score: maxTotal,
+            round_results: roundResults, total_time_seconds: totalGameTime, game_mode: "daily"
+          })
         });
         localStorage.setItem("captap_played_date", todayStr());
         localStorage.setItem("captap_puzzle_version", currentPuzzleVersion);
         localStorage.setItem("captap_last_score", totalScore);
         localStorage.setItem("captap_last_max", maxTotal);
+        localStorage.setItem("captap_last_time", totalGameTime);
         const guestCta = document.getElementById("guest-cta");
-        if(guestCta) guestCta.style.display = "none";
+        if (guestCta) guestCta.style.display = "none";
         loadLeaderboard("daily");
         fetchAndShowStats(currentUser.id);
       }
@@ -660,84 +1046,184 @@
     localStorage.removeItem("captap_puzzle_version");
     localStorage.removeItem("captap_last_score");
     localStorage.removeItem("captap_last_max");
+    localStorage.removeItem("captap_last_time");
     currentUser = null;
-    // Reset game
-    puzzle=[]; current=0; totalScore=0; results=[]; selectedChoice=null; isPractice=false;
-    document.getElementById("results").style.display="none";
-    document.getElementById("game-card").style.display="none";
-    document.getElementById("already-played").style.display="none";
-    document.getElementById("progress").style.display="flex";
-    document.getElementById("score-display").textContent="0 pts";
-    document.getElementById("loading").style.display="block";
-    updateUserPill();
-    showModal();
+    puzzle = []; current = 0; totalScore = 0; results = []; selectedChoice = null; isPractice = false;
+    roundTimes = []; totalGameTime = 0;
+    document.getElementById("results").style.display = "none";
+    document.getElementById("game-card").style.display = "none";
+    document.getElementById("already-played").style.display = "none";
+    document.getElementById("progress").style.display = "flex";
+    document.getElementById("score-display").textContent = "0 pts";
+    document.getElementById("loading").style.display = "block";
+    updateUserNavBtn();
+    hideModal();
+    document.getElementById("modal-overlay").classList.remove("open");
     init();
   }
 
-  // Enter key in modal
-  document.getElementById("reg-username").addEventListener("keydown", e => { if(e.key==="Enter") registerUser(); });
-  document.getElementById("reg-email").addEventListener("keydown",    e => { if(e.key==="Enter") registerUser(); });
+  document.getElementById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") registerUser(); });
+  document.getElementById("reg-email").addEventListener("keydown",    e => { if (e.key === "Enter") registerUser(); });
 
-  // ── Game state ───────────────────────────────────────────────────
-  let puzzle=[], current=0, totalScore=0, results=[], selectedChoice=null;
-  let activeTab = "daily";
-  let isPractice = false;
-  let currentPuzzleVersion = "1";
-  let myRank = null, myRankLabel = null, myPercentile = null;
-  let userStreak = 0;
-  let autoAdvanceTimer = null;
+  // ═══════════════════════════════════════════════════════════════
+  // MODE SWITCHING (Change 5)
+  // ═══════════════════════════════════════════════════════════════
 
-  // ── Challenge link detection ──────────────────────────────────────
-  const _urlParams = new URLSearchParams(window.location.search);
-  const challengerName  = _urlParams.get("c");
-  const challengerScore = parseInt(_urlParams.get("s") || "0", 10);
-
-  function todayStr() {
-    // Use EST date so puzzle resets at midnight Eastern time
-    return new Date().toLocaleDateString("en-CA", {timeZone: "America/New_York"});
-  }
-  function alreadyPlayedToday() {
-    return localStorage.getItem("captap_played_date") === todayStr() &&
-           localStorage.getItem("captap_puzzle_version") === currentPuzzleVersion;
+  function switchMode(mode) {
+    currentMode = mode;
+    ["daily","hl","expert","battle"].forEach(m => {
+      document.getElementById(`mode-tab-${m}`).classList.toggle("active", m === mode);
+      document.getElementById(`${m === "hl" ? "hl" : m === "expert" ? "expert" : m === "battle" ? "battle" : "daily"}-mode`).style.display = "none";
+    });
+    // Show correct panel
+    if (mode === "daily") document.getElementById("daily-mode").style.display = "block";
+    else if (mode === "hl") { document.getElementById("hl-mode").style.display = "block"; loadHlMode(); }
+    else if (mode === "expert") { document.getElementById("expert-mode").style.display = "block"; loadExpertMode(); }
+    else if (mode === "battle") { document.getElementById("battle-mode").style.display = "block"; loadBattleMode(); }
   }
 
-  function estCountdown() {
-    const now = new Date();
-    const est = new Date(now.toLocaleString("en-US", {timeZone: "America/New_York"}));
-    const midnight = new Date(est); midnight.setHours(0,0,0,0); midnight.setDate(midnight.getDate()+1);
-    const diff = midnight - est;
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    return `${String(h).padStart(2,"0")}:${String(m).padStart(2,"0")}:${String(s).padStart(2,"0")}`;
+  // ═══════════════════════════════════════════════════════════════
+  // LEADERBOARD MODAL (Change 3 + Change 11)
+  // ═══════════════════════════════════════════════════════════════
+
+  let modalActiveTab = "daily";
+
+  function openLbModal() {
+    document.getElementById("lb-modal-overlay").classList.add("open");
+    switchModalTab("daily");
   }
+
+  function closeLbModal() {
+    document.getElementById("lb-modal-overlay").classList.remove("open");
+  }
+
+  async function switchModalTab(tab) {
+    modalActiveTab = tab;
+    ["daily","weekly","battles"].forEach(t => {
+      document.getElementById(`modal-tab-${t}`).classList.toggle("active", t === tab);
+    });
+    const body = document.getElementById("modal-lb-body");
+    body.innerHTML = `<div class="lb-empty">Loading…</div>`;
+    try {
+      if (tab === "battles") {
+        const res = await fetch("/api/battle/leaderboard");
+        const data = await res.json();
+        body.innerHTML = renderBattleLeaderboard(data);
+      } else {
+        const res = await fetch(`/api/leaderboard/${tab}`);
+        const data = await res.json();
+        body.innerHTML = renderLeaderboard(data, tab);
+      }
+    } catch(e) { body.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
+  }
+
+  async function fetchAndShowStats(userId) {
+    try {
+      const res  = await fetch(`/api/stats/${userId}`);
+      const data = await res.json();
+      if (data.error) return;
+      userStreak = data.streak;
+      document.getElementById("stat-streak").textContent = data.streak;
+      document.getElementById("stat-played").textContent = data.games_played;
+      document.getElementById("stat-best").textContent   = data.best_score;
+      document.getElementById("stat-avg").textContent    = data.avg_score;
+      document.getElementById("user-stats-block").style.display = "grid";
+    } catch(e) {}
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // LEADERBOARD RENDERING (Change 1 — show time)
+  // ═══════════════════════════════════════════════════════════════
+
+  function renderLeaderboard(data, tab) {
+    if (!data.length) return `<div class="lb-empty">No scores yet — be the first!</div>`;
+    const ordinal = n => ["1ST","2ND","3RD"][n-1] || `${n}TH`;
+    const rankClasses = ["gold","silver","bronze"];
+    const scoreKey = tab === "daily" ? "score" : "avg_score";
+
+    const ranks = [];
+    for (let i = 0; i < data.length; i++) {
+      if (i === 0) { ranks.push(1); continue; }
+      ranks.push(data[i][scoreKey] === data[i-1][scoreKey] ? ranks[i-1] : i+1);
+    }
+    const tieCount = r => ranks.filter(x => x === r).length;
+
+    if (tab === "daily" && currentUser && !isPractice) {
+      const myIdx = data.findIndex(r => r.username === currentUser.username);
+      if (myIdx >= 0) {
+        myRank = ranks[myIdx];
+        const tied = tieCount(myRank) > 1;
+        myRankLabel = (tied ? "T-" : "") + ordinal(myRank);
+        myPercentile = Math.round((data.length - myIdx) / data.length * 100);
+        const pctEl = document.getElementById("percentile-line");
+        if (pctEl) { pctEl.textContent = `You beat ${myPercentile}% of players today`; pctEl.style.display = "block"; }
+      }
+    }
+
+    return data.map((row, i) => {
+      const r = ranks[i];
+      const tied = tieCount(r) > 1;
+      const rankLabel = (tied ? "T-" : "") + ordinal(r);
+      const rankCls = r <= 3 ? rankClasses[r-1] : "";
+      const isMe = currentUser && row.username === currentUser.username;
+      const score = tab === "daily" ? `${row.score} pts` : `avg ${row.avg_score} pts`;
+      // Show time on leaderboard (Change 1)
+      let meta = "";
+      if (tab === "daily") {
+        meta = row.total_time_seconds ? `${row.pct}% · ${formatTime(row.total_time_seconds)}` : `${row.pct}%`;
+      } else {
+        meta = `${row.days_played} game${row.days_played > 1 ? "s" : ""}`;
+      }
+      return `<div class="lb-row">
+        <span class="lb-rank ${rankCls}">${rankLabel}</span>
+        <span class="lb-name ${isMe ? "me" : ""}">${row.username}${isMe ? " ◀" : ""}</span>
+        <span class="lb-meta">${meta}</span>
+        <span class="lb-score">${score}</span>
+      </div>`;
+    }).join("");
+  }
+
+  function renderBattleLeaderboard(data) {
+    if (!data.length) return `<div class="lb-empty">No battles yet!</div>`;
+    return data.map((row, i) => {
+      const rankClasses = ["gold","silver","bronze"];
+      const rankCls = i < 3 ? rankClasses[i] : "";
+      const isMe = currentUser && row.username === currentUser.username;
+      return `<div class="lb-row">
+        <span class="lb-rank ${rankCls}">${i+1}</span>
+        <span class="lb-name ${isMe ? "me" : ""}">${row.username}${isMe ? " ◀" : ""}</span>
+        <span class="lb-meta">${row.wins}W-${row.losses}L · ${row.win_pct}%</span>
+        <span class="lb-score">${row.wins} wins</span>
+      </div>`;
+    }).join("");
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // DAILY QUIZ — INIT & ALREADY PLAYED
+  // ═══════════════════════════════════════════════════════════════
 
   function showAlreadyPlayed() {
     document.getElementById("loading").style.display = "none";
     document.getElementById("progress").style.display = "none";
     const ap = document.getElementById("already-played");
     ap.style.display = "block";
-    // Show saved score from localStorage if available
     const savedScore = localStorage.getItem("captap_last_score");
     const savedMax   = localStorage.getItem("captap_last_max");
-    if(savedScore) {
+    if (savedScore) {
       document.getElementById("ap-score").textContent = savedScore;
       document.getElementById("ap-max").textContent   = `OUT OF ${savedMax} PTS`;
     }
-    // Countdown
     document.getElementById("ap-countdown").textContent = estCountdown();
     setInterval(() => {
       document.getElementById("ap-countdown").textContent = estCountdown();
     }, 1000);
     switchApTab("daily");
-
-    // Personal stats
-    if(currentUser) fetchAndShowStats(currentUser.id);
+    if (currentUser) fetchAndShowStats(currentUser.id);
   }
 
   async function switchApTab(tab) {
-    document.getElementById("ap-tab-daily").classList.toggle("active", tab==="daily");
-    document.getElementById("ap-tab-weekly").classList.toggle("active", tab==="weekly");
+    document.getElementById("ap-tab-daily").classList.toggle("active", tab === "daily");
+    document.getElementById("ap-tab-weekly").classList.toggle("active", tab === "weekly");
     const body = document.getElementById("ap-lb-body");
     body.innerHTML = `<div class="lb-empty">Loading…</div>`;
     try {
@@ -747,199 +1233,145 @@
     } catch(e) { body.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
   }
 
-  async function openLeaderboardModal() {
-    document.getElementById("lb-modal-overlay").style.display = "flex";
-    switchModalTab("daily");
-  }
-  let modalActiveTab = "daily";
-  async function switchModalTab(tab) {
-    modalActiveTab = tab;
-    document.getElementById("modal-tab-daily").classList.toggle("active", tab==="daily");
-    document.getElementById("modal-tab-weekly").classList.toggle("active", tab==="weekly");
-    const body = document.getElementById("modal-lb-body");
-    body.innerHTML = `<div class="lb-empty">Loading…</div>`;
-    try {
-      const res = await fetch(`/api/leaderboard/${tab}`);
-      const data = await res.json();
-      body.innerHTML = renderLeaderboard(data, tab);
-    } catch(e) { body.innerHTML = `<div class="lb-empty">Could not load.</div>`; }
-  }
-
-  function renderLeaderboard(data, tab) {
-    if(!data.length) return `<div class="lb-empty">No scores yet — be the first!</div>`;
-    const ordinal=n=>["1ST","2ND","3RD"][n-1]||`${n}TH`;
-    const rankClasses=["gold","silver","bronze"];
-    const scoreKey=tab==="daily"?"score":"avg_score";
-
-    // Compute competition ranks (ties share rank, next rank skips)
-    const ranks=[];
-    for(let i=0;i<data.length;i++){
-      if(i===0){ranks.push(1);continue;}
-      ranks.push(data[i][scoreKey]===data[i-1][scoreKey]?ranks[i-1]:i+1);
-    }
-    const tieCount=r=>ranks.filter(x=>x===r).length;
-
-    // Track user's rank + percentile for share text and percentile display
-    if(tab==="daily"&&currentUser&&!isPractice){
-      const myIdx=data.findIndex(r=>r.username===currentUser.username);
-      if(myIdx>=0){
-        myRank=ranks[myIdx];
-        const tied=tieCount(myRank)>1;
-        myRankLabel=(tied?"T-":"")+ordinal(myRank);
-        myPercentile=Math.round((data.length-myIdx)/data.length*100);
-        const pctEl=document.getElementById("percentile-line");
-        if(pctEl) { pctEl.textContent=`You beat ${myPercentile}% of players today`; pctEl.style.display="block"; }
-      }
-    }
-
-    return data.map((row,i)=>{
-      const r=ranks[i];
-      const tied=tieCount(r)>1;
-      const rankLabel=(tied?"T-":"")+ordinal(r);
-      const rankCls=r<=3?rankClasses[r-1]:"";
-      const isMe=currentUser&&row.username===currentUser.username;
-      const score=tab==="daily"?`${row.score} pts`:`avg ${row.avg_score} pts`;
-      const meta=tab==="daily"?`${row.pct}%`:`${row.days_played} game${row.days_played>1?"s":""}`;
-      return `<div class="lb-row">
-        <span class="lb-rank ${rankCls}">${rankLabel}</span>
-        <span class="lb-name ${isMe?"me":""}">${row.username}${isMe?" ◀":""}</span>
-        <span class="lb-meta">${meta}</span>
-        <span class="lb-score">${score}</span>
-      </div>`;
-    }).join("");
-  }
-
   async function init() {
-    // No registration wall — guests can play immediately
-
-    // If already played today, skip puzzle fetch — go straight to leaderboard
-    if(localStorage.getItem("captap_played_date") === todayStr()) {
+    // No registration wall (Change 6) — guests play immediately
+    if (localStorage.getItem("captap_played_date") === todayStr()) {
       document.getElementById("loading").style.display = "none";
       showAlreadyPlayed();
       return;
     }
 
-    const res  = await fetch("/api/puzzle");
-    const data = await res.json();
-    if(data.error) {
-      document.getElementById("loading").querySelector(".card-inner").innerHTML =
-        `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">ERROR: ${data.error}</p>`;
-      return;
-    }
-    currentPuzzleVersion = data.puzzle_version || "1";
-    isPractice = alreadyPlayedToday();
+    try {
+      const res  = await fetch("/api/puzzle");
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById("loading").querySelector(".card-inner").innerHTML =
+          `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">ERROR: ${data.error}</p>`;
+        return;
+      }
+      currentPuzzleVersion = data.puzzle_version || "1";
+      isPractice = alreadyPlayedToday();
 
-    if(isPractice) {
+      if (isPractice) {
+        puzzle = data.rounds;
+        showAlreadyPlayed();
+        return;
+      }
+
       puzzle = data.rounds;
-      showAlreadyPlayed();
-      return;
+      document.getElementById("loading").style.display = "none";
+      roundTimes = [];
+      totalGameTime = 0;
+      showRound(0);
+    } catch(e) {
+      document.getElementById("loading").querySelector(".card-inner").innerHTML =
+        `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">Failed to load puzzle. Please refresh.</p>`;
     }
-
-    puzzle = data.rounds;
-    document.getElementById("loading").style.display = "none";
-    showRound(0);
   }
+
+  // ═══════════════════════════════════════════════════════════════
+  // DAILY QUIZ — GAME FLOW
+  // ═══════════════════════════════════════════════════════════════
 
   function showRound(idx) {
     selectedChoice = null;
     const round = puzzle[idx];
     document.getElementById("game-card").style.display = "block";
 
-    for(let i=0;i<5;i++) {
+    for (let i = 0; i < 5; i++) {
       const s = document.getElementById(`prog-${i}`);
-      s.className = "prog-seg"+(i<idx?" done":i===idx?" active":"");
+      s.className = "prog-seg" + (i < idx ? " done" : i === idx ? " active" : "");
     }
 
     const tier = tierInfo(round.points_available);
     const badge = document.getElementById("tier-badge");
-    badge.className = "tier-badge "+tier.cls;
+    badge.className = "tier-badge " + tier.cls;
     badge.textContent = tier.label;
-
-    const avatar = document.getElementById("company-avatar");
-    avatar.style.background=""; avatar.style.color="";
-    if(round.logo_url) {
-      avatar.innerHTML=`<img src="${round.logo_url}" alt="${round.ticker}" onerror="this.onerror=null;fallbackAvatar('${round.ticker}');">`;
-    } else fallbackAvatar(round.ticker);
 
     document.getElementById("company-name").textContent   = round.name;
     document.getElementById("company-ticker").textContent = round.ticker;
     document.getElementById("company-ceo").textContent    = round.ceo;
     document.getElementById("company-hq").textContent     = round.headquarters;
 
-    const desc=document.getElementById("company-description");
-    if(round.description){
-      const SHORT=220;
-      const full=round.description;
-      if(full.length<=SHORT){
-        desc.innerHTML=full;
-      } else {
-        const snippet=full.slice(0,SHORT)+"…";
-        desc.innerHTML=`<span id="desc-short">${snippet} <a href="#" id="desc-toggle" style="color:var(--gold);text-decoration:none;font-size:0.7rem;">read more</a></span><span id="desc-full" style="display:none">${full} <a href="#" id="desc-toggle2" style="color:var(--gold);text-decoration:none;font-size:0.7rem;">show less</a></span>`;
-        desc.querySelector("#desc-toggle").onclick=e=>{e.preventDefault();desc.querySelector("#desc-short").style.display="none";desc.querySelector("#desc-full").style.display="inline";};
-        desc.querySelector("#desc-toggle2").onclick=e=>{e.preventDefault();desc.querySelector("#desc-full").style.display="none";desc.querySelector("#desc-short").style.display="inline";};
-      }
-      desc.style.display="block";
-    } else desc.style.display="none";
+    // Fun fact FIRST (Change 2)
+    const fact = document.getElementById("company-funfact");
+    if (round.fun_fact) {
+      document.getElementById("fun-fact-text").textContent = round.fun_fact;
+      fact.style.display = "flex";
+    } else {
+      fact.style.display = "none";
+    }
 
-    const fact=document.getElementById("company-funfact");
-    if(round.fun_fact){document.getElementById("fun-fact-text").textContent=round.fun_fact;fact.style.display="flex";}
-    else fact.style.display="none";
+    // Description truncated to 120 chars (Change 2)
+    const desc = document.getElementById("company-description");
+    if (round.description) {
+      const text = round.description.length > 120 ? round.description.slice(0, 120) + "…" : round.description;
+      desc.textContent = text;
+      desc.style.display = "block";
+    } else {
+      desc.style.display = "none";
+    }
 
-    const container=document.getElementById("choices");
-    container.innerHTML="";
-    round.choices.forEach((cap,i)=>{
-      const btn=document.createElement("button");
-      btn.className="choice-btn"; btn.id=`choice-${i}`;
-      btn.innerHTML=cap;
-      btn.onclick=()=>selectChoice(i);
+    const container = document.getElementById("choices");
+    container.innerHTML = "";
+    round.choices.forEach((cap, i) => {
+      const btn = document.createElement("button");
+      btn.className = "choice-btn";
+      btn.id = `choice-${i}`;
+      btn.innerHTML = `<span class="choice-num">${i+1}</span>${cap}`;
+      btn.onclick = () => selectChoice(i);
       container.appendChild(btn);
     });
 
-    document.getElementById("feedback").style.display="none";
-    document.getElementById("submit-btn").style.display="none";
-    document.getElementById("next-btn").style.display="none";
-    document.getElementById("next-btn").textContent=idx<4?"Next Question →":"Final Results →";
-  }
+    document.getElementById("feedback").style.display = "none";
+    document.getElementById("submit-btn").style.display = "none";
+    document.getElementById("next-btn").style.display = "none";
+    document.getElementById("next-btn").textContent = idx < 4 ? "Next Question →" : "Final Results →";
+    document.getElementById("auto-advance-bar").style.display = "none";
 
-  function fallbackAvatar(ticker) {
-    const avatar=document.getElementById("company-avatar");
-    const [bg,fg]=avatarColor(ticker);
-    avatar.style.background=bg; avatar.style.color=fg;
-    avatar.innerHTML=`<span>${ticker.slice(0,3)}</span>`;
+    // Start per-round timer (Change 1)
+    startRoundTimer();
   }
 
   function selectChoice(idx) {
-    selectedChoice=idx;
-    document.querySelectorAll(".choice-btn").forEach((b,i)=>b.classList.toggle("selected",i===idx));
-    document.getElementById("submit-btn").style.display="block";
+    selectedChoice = idx;
+    document.querySelectorAll(".choice-btn").forEach((b, i) => b.classList.toggle("selected", i === idx));
+    document.getElementById("submit-btn").style.display = "block";
   }
 
   function submitAnswer() {
-    if(selectedChoice===null) return;
-    const round=puzzle[current];
-    document.querySelectorAll(".choice-btn").forEach(b=>{b.disabled=true;b.classList.remove("selected");});
-    document.getElementById("submit-btn").style.display="none";
+    if (selectedChoice === null) return;
+    const round = puzzle[current];
 
-    const correct=selectedChoice===round.correct_index;
-    document.getElementById(`choice-${selectedChoice}`).classList.add(correct?"correct":"wrong");
-    if(!correct) document.getElementById(`choice-${round.correct_index}`).classList.add("correct");
+    // Record round time (Change 1)
+    const elapsed = recordRoundTime();
+    document.getElementById("round-timer").textContent = formatTime(elapsed);
 
-    const pts=correct?round.points_available:0;
-    totalScore+=pts; results.push({round,correct,pts});
-    document.getElementById("score-display").textContent=`${totalScore} pts`;
+    document.querySelectorAll(".choice-btn").forEach(b => { b.disabled = true; b.classList.remove("selected"); });
+    document.getElementById("submit-btn").style.display = "none";
 
-    const fb=document.getElementById("feedback");
-    fb.style.display="block"; fb.className=correct?"correct":"wrong";
-    fb.textContent=correct?`✔ CORRECT  +${pts} PTS`:`✘ INCORRECT — ANSWER: ${round.actual_cap}`;
-    document.getElementById("next-btn").style.display="block";
+    const correct = selectedChoice === round.correct_index;
+    document.getElementById(`choice-${selectedChoice}`).classList.add(correct ? "correct" : "wrong");
+    if (!correct) document.getElementById(`choice-${round.correct_index}`).classList.add("correct");
 
-    // Auto-advance after 1.5s — tap Next to skip
+    const pts = correct ? round.points_available : 0;
+    totalScore += pts;
+    results.push({ round, correct, pts, time: elapsed });
+    document.getElementById("score-display").textContent = `${totalScore} pts`;
+
+    const fb = document.getElementById("feedback");
+    fb.style.display = "block";
+    fb.className = correct ? "correct" : "wrong";
+    fb.textContent = correct ? `✔ CORRECT  +${pts} PTS` : `✘ INCORRECT — ANSWER: ${round.actual_cap}`;
+    document.getElementById("next-btn").style.display = "block";
+
+    // Auto-advance after 1.5s
     const bar      = document.getElementById("auto-advance-bar");
     const barInner = document.getElementById("auto-advance-bar-inner");
     bar.style.display = "block";
     barInner.style.transition = "none";
     barInner.style.width = "100%";
-    barInner.offsetWidth; // force reflow
+    barInner.offsetWidth;
     barInner.style.transition = "width 1.5s linear";
     barInner.style.width = "0%";
     autoAdvanceTimer = setTimeout(() => {
@@ -949,183 +1381,593 @@
   }
 
   function nextRound() {
-    if(autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
+    if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
     document.getElementById("auto-advance-bar").style.display = "none";
     current++;
-    current>=puzzle.length?showResults():showRound(current);
+    current >= puzzle.length ? showResults() : showRound(current);
   }
 
   async function showResults() {
-    document.getElementById("game-card").style.display="none";
-    document.getElementById("progress").style.display="none";
+    document.getElementById("game-card").style.display = "none";
+    document.getElementById("progress").style.display = "none";
 
-    const maxTotal=puzzle.reduce((s,r)=>s+r.points_available,0);
+    const maxTotal = puzzle.reduce((s, r) => s + r.points_available, 0);
+
+    // Compute total time
+    totalGameTime = roundTimes.reduce((a, b) => a + b, 0);
+    const avgTime = roundTimes.length ? totalGameTime / roundTimes.length : 0;
 
     // Performance label
     document.getElementById("perf-label").textContent = getPerformanceLabel(totalScore, maxTotal);
 
-    // Animated score count-up
     const finalScoreEl = document.getElementById("final-score");
     finalScoreEl.textContent = "0";
-    document.getElementById("max-score-label").textContent=`OUT OF ${maxTotal} PTS`;
+    document.getElementById("max-score-label").textContent = `OUT OF ${maxTotal} PTS`;
+
+    // Time stats (Change 1)
+    const timeStatsEl = document.getElementById("time-stats");
+    timeStatsEl.textContent = `Avg ${avgTime.toFixed(1)}s/question · Total ${formatTime(totalGameTime)}`;
 
     // Staggered result rows
-    const rows=document.getElementById("results-rows");
-    rows.innerHTML="";
-    results.forEach((r, idx)=>{
-      const div=document.createElement("div");
-      div.className="result-row";
+    const rows = document.getElementById("results-rows");
+    rows.innerHTML = "";
+    results.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "result-row";
       div.style.animationDelay = `${600 + idx * 150}ms`;
-      div.innerHTML=`
-        <span class="result-icon">${r.correct?"✔":"✘"}</span>
+      div.innerHTML = `
+        <span class="result-icon">${r.correct ? "✔" : "✘"}</span>
         <div class="result-company">${r.round.name}<div class="result-ticker">${r.round.ticker} · actual: ${r.round.actual_cap}</div></div>
-        <div class="result-pts ${r.correct?"earned":"missed"}">${r.pts}/${r.round.points_available}</div>`;
+        <div class="result-pts ${r.correct ? "earned" : "missed"}">${r.pts}/${r.round.points_available}</div>`;
       rows.appendChild(div);
     });
 
-    document.getElementById("results").style.display="block";
-
-    // Start count-up after brief pause
+    document.getElementById("results").style.display = "block";
     setTimeout(() => animateScore(finalScoreEl, totalScore, 800), 200);
-
-    // Confetti for strong scores
-    if(totalScore >= 800) setTimeout(() => fireConfetti(totalScore === maxTotal), 300);
+    if (totalScore >= 800) setTimeout(() => fireConfetti(totalScore === maxTotal), 300);
 
     // Guest CTA
     const guestCta = document.getElementById("guest-cta");
-    if(guestCta) guestCta.style.display = currentUser ? "none" : "block";
+    if (guestCta) guestCta.style.display = currentUser ? "none" : "block";
 
-    // Show practice mode banner if applicable
-    const practiceBanner = document.getElementById("practice-banner");
-    practiceBanner.style.display = isPractice ? "block" : "none";
+    document.getElementById("practice-banner").style.display = isPractice ? "block" : "none";
 
-    // Save score if logged in and not practice
-    if(currentUser && !isPractice) {
-      const roundResults=results.map(r=>({ticker:r.round.ticker,correct:r.correct,pts:r.pts}));
-      await fetch("/api/scores",{
-        method:"POST", headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({user_id:currentUser.id,score:totalScore,max_score:maxTotal,round_results:roundResults})
+    // Save score
+    if (currentUser && !isPractice) {
+      const roundResults = results.map(r => ({ ticker: r.round.ticker, correct: r.correct, pts: r.pts, time: r.time }));
+      await fetch("/api/scores", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          user_id: currentUser.id, score: totalScore, max_score: maxTotal,
+          round_results: roundResults, total_time_seconds: totalGameTime, game_mode: "daily"
+        })
       });
       localStorage.setItem("captap_played_date", todayStr());
       localStorage.setItem("captap_puzzle_version", currentPuzzleVersion);
       localStorage.setItem("captap_last_score", totalScore);
       localStorage.setItem("captap_last_max", maxTotal);
+      localStorage.setItem("captap_last_time", totalGameTime);
       fetchAndShowStats(currentUser.id);
     }
 
-    // Show challenge result if arriving via challenge link
-    if(challengerName && challengerScore && !isPractice) {
-      const banner=document.getElementById("challenge-banner");
-      if(banner) {
-        const diff=totalScore-challengerScore;
-        if(diff>0) banner.innerHTML=`🏆 You beat <b>${challengerName}</b>'s score of ${challengerScore} by ${diff} pts!`;
-        else if(diff<0) banner.innerHTML=`😔 <b>${challengerName}</b> beat you by ${Math.abs(diff)} pts (${challengerScore} vs your ${totalScore})`;
-        else banner.innerHTML=`🤝 Tied with <b>${challengerName}</b> at ${totalScore} pts!`;
-        banner.style.background=diff>=0?"#0a1a0a":"#1a0a0a";
-        banner.style.border=`1px solid ${diff>=0?"#1a4a1a":"#4a1a1a"}`;
-        banner.style.color=diff>=0?"#4caf50":"#ef5350";
-        banner.style.display="block";
+    // Challenge result
+    if (challengerName && challengerScore && !isPractice) {
+      const banner = document.getElementById("challenge-banner");
+      if (banner) {
+        const diff = totalScore - challengerScore;
+        if (diff > 0) banner.innerHTML = `🏆 You beat <b>${challengerName}</b>'s score of ${challengerScore} by ${diff} pts!`;
+        else if (diff < 0) banner.innerHTML = `😔 <b>${challengerName}</b> beat you by ${Math.abs(diff)} pts (${challengerScore} vs your ${totalScore})`;
+        else banner.innerHTML = `🤝 Tied with <b>${challengerName}</b> at ${totalScore} pts!`;
+        banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
+        banner.style.border = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
+        banner.style.color = diff >= 0 ? "#4caf50" : "#ef5350";
+        banner.style.display = "block";
       }
     }
 
-    // Show challenge button for non-practice games
-    const challengeBtn=document.getElementById("challenge-btn");
-    if(challengeBtn && !isPractice) challengeBtn.style.display="block";
+    // Auto-record battle if arriving via ?battle= params
+    if (battleChallengerIdParam && battleOpponentIdParam && currentUser && !isPractice) {
+      // If current user is the opponent
+      if (currentUser.id === battleOpponentIdParam) {
+        // Fetch challenger's score from leaderboard to get opponent_score
+        // We record what we know: challenger_id, opponent_id=currentUser.id, scores
+        // The challenger_score would be fetched but we only know our score here.
+        // Record battle with opponent_score = our score; challenger_score unknown server-side
+        // We'll just record what we have
+        try {
+          await fetch("/api/battle", {
+            method: "POST", headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              challenger_id: battleChallengerIdParam,
+              opponent_id: battleOpponentIdParam,
+              challenger_score: 0,
+              opponent_score: totalScore,
+              played_at: todayStr()
+            })
+          });
+        } catch(e) {}
+      }
+    }
 
-    // Load leaderboard
     loadLeaderboard("daily");
   }
 
-  // ── Leaderboards ──────────────────────────────────────────────────
+  // ═══════════════════════════════════════════════════════════════
+  // LEADERBOARD (Daily Results)
+  // ═══════════════════════════════════════════════════════════════
+
   function switchTab(tab) {
-    activeTab=tab;
-    document.getElementById("tab-daily").classList.toggle("active",tab==="daily");
-    document.getElementById("tab-weekly").classList.toggle("active",tab==="weekly");
+    activeTab = tab;
+    document.getElementById("tab-daily").classList.toggle("active", tab === "daily");
+    document.getElementById("tab-weekly").classList.toggle("active", tab === "weekly");
     loadLeaderboard(tab);
   }
 
   async function loadLeaderboard(tab) {
-    const body=document.getElementById("lb-body");
-    body.innerHTML=`<div class="lb-empty">Loading…</div>`;
+    const body = document.getElementById("lb-body");
+    body.innerHTML = `<div class="lb-empty">Loading…</div>`;
     try {
-      const res=await fetch(`/api/leaderboard/${tab}`);
-      const data=await res.json();
-      body.innerHTML=renderLeaderboard(data, tab);
+      const res = await fetch(`/api/leaderboard/${tab}`);
+      const data = await res.json();
+      body.innerHTML = renderLeaderboard(data, tab);
     } catch(e) {
-      body.innerHTML=`<div class="lb-empty">Could not load leaderboard.</div>`;
+      body.innerHTML = `<div class="lb-empty">Could not load leaderboard.</div>`;
     }
   }
 
-  // ── Share ────────────────────────────────────────────────────────
-  const APP_URL = "https://cs-training-week1-production.up.railway.app";
+  // ═══════════════════════════════════════════════════════════════
+  // SHARE TEXT (Change 4)
+  // ═══════════════════════════════════════════════════════════════
 
-  function buildShareText() {
-    const date=new Date().toLocaleDateString("en-US",{timeZone:"America/New_York",month:"long",day:"numeric",year:"numeric"});
+  function buildShareText(mode) {
+    const dateStr = new Date().toLocaleDateString("en-US", { timeZone: "America/New_York", month: "long", day: "numeric", year: "numeric" });
 
-    // Already-played user visiting fresh (no results in memory)
-    if(!results.length) {
-      const s=localStorage.getItem("captap_last_score")||"?";
-      return `captap.app BETA — ${date}\nScore: ${s}/1000\n\nCan you beat me? ${APP_URL}`;
+    if (mode === "hl" && hlResults.length) {
+      const emojiGrid = hlResults.map(r => r.correct ? "✅" : "❌").join("");
+      let txt = `CapTap — ${dateStr}\nHigher/Lower Score: ${hlScore} / 1000\n${emojiGrid}\nCan you beat me?\n${APP_URL}`;
+      return txt;
     }
 
-    const tierEmoji=pts=>pts===100?"🏅":pts===200?"🎯":"🌞";
-    const emojiGrid=results.map(r=>r.correct?"✅":"❌").join("");
-    const roundParts=results.map(r=>`${r.pts}${tierEmoji(r.round.points_available)}`).join(" ");
-    const header=isPractice?"CapTap BETA Practice":"captap.app BETA";
-    let rankLine="";
-    if(myRankLabel&&!isPractice) rankLine=`\n${myRankLabel} today · Beat ${myPercentile}% of players`;
-    let streakLine="";
-    if(userStreak>0&&!isPractice) streakLine=`\n🔥 ${userStreak}-day streak`;
-    return `${header} — ${date}\n${emojiGrid}\n${roundParts}\nFinal score: ${totalScore}/1000${rankLine}${streakLine}\n\nCan you beat me? ${APP_URL}`;
-  }
+    if (mode === "expert" && expertResults.length) {
+      const emojiGrid = expertResults.map(r => r.pts > 0 ? "✅" : "❌").join("");
+      let txt = `CapTap — ${dateStr}\nExpert Score: ${expertScore} / 1500\n${emojiGrid}\nCan you beat me?\n${APP_URL}`;
+      return txt;
+    }
 
-  function _showToast(text) {
-    ["copy-toast","ap-copy-toast"].forEach(id=>{
-      const el=document.getElementById(id);
-      if(el){ el.textContent=text; setTimeout(()=>el.textContent="",2500); }
-    });
+    // Daily quiz (default)
+    if (!results.length) {
+      const s = localStorage.getItem("captap_last_score") || "?";
+      const t = localStorage.getItem("captap_last_time");
+      let txt = `CapTap — ${dateStr}\nScore: ${s}/1000`;
+      if (t) txt += `\n${formatTime(parseFloat(t))} total`;
+      txt += `\nCan you beat me?\n${APP_URL}`;
+      return txt;
+    }
+
+    const emojiGrid = results.map(r => r.correct ? "✅" : "❌").join("");
+    let txt = `CapTap — ${dateStr}\nScore: ${totalScore} / 1000\n${emojiGrid}`;
+
+    // Time line (always shown, Change 4)
+    txt += `\n${formatTime(totalGameTime)} total`;
+    // Streak (only if > 0, Change 4)
+    if (userStreak > 0 && !isPractice) txt += ` · 🔥 ${userStreak}-day streak`;
+    txt += `\nCan you beat me?\n${APP_URL}`;
+    return txt;
   }
 
   function copyShare() {
-    navigator.clipboard.writeText(buildShareText())
-      .then(()=>_showToast("▸ Copied to clipboard"))
-      .catch(()=>_showToast("▸ Copy failed — select and copy manually"));
+    const mode = currentMode;
+    navigator.clipboard.writeText(buildShareText(mode))
+      .then(() => _showToast("▸ Copied to clipboard"))
+      .catch(() => _showToast("▸ Copy failed — select and copy manually"));
   }
 
-  function copyChallenge() {
-    const url=`${APP_URL}/?c=${encodeURIComponent(currentUser.username)}&s=${totalScore}`;
-    navigator.clipboard.writeText(url)
-      .then(()=>_showToast("▸ Challenge link copied!"))
-      .catch(()=>_showToast("▸ Copy failed"));
-  }
-
-  // ── Keyboard shortcuts (desktop) ─────────────────────────────────
-  document.addEventListener("keydown", e => {
-    if(document.getElementById("modal-overlay").classList.contains("open")) return;
-    if(e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
-    const gameVisible = document.getElementById("game-card").style.display !== "none";
-    if(!gameVisible) return;
-    const submitted = document.getElementById("next-btn").style.display !== "none";
-    if(!submitted && e.key >= "1" && e.key <= "5") {
-      const idx = parseInt(e.key) - 1;
-      if(idx < puzzle[current].choices.length) selectChoice(idx);
-    } else if(e.key === "Enter") {
-      if(!submitted && selectedChoice !== null) submitAnswer();
-      else if(submitted) nextRound();
-    }
-  });
-
-  // ── Play again ───────────────────────────────────────────────────
   function playAgain() {
-    current=0;totalScore=0;results=[];selectedChoice=null;
-    document.getElementById("results").style.display="none";
-    document.getElementById("already-played").style.display="none";
-    document.getElementById("progress").style.display="flex";
-    document.getElementById("score-display").textContent="0 pts";
-    document.getElementById("loading").style.display="block";
+    current = 0; totalScore = 0; results = []; selectedChoice = null;
+    roundTimes = []; totalGameTime = 0;
+    document.getElementById("results").style.display = "none";
+    document.getElementById("already-played").style.display = "none";
+    document.getElementById("progress").style.display = "flex";
+    document.getElementById("score-display").textContent = "0 pts";
+    document.getElementById("loading").style.display = "block";
     init();
   }
 
+  // ═══════════════════════════════════════════════════════════════
+  // KEYBOARD SHORTCUTS
+  // ═══════════════════════════════════════════════════════════════
+
+  document.addEventListener("keydown", e => {
+    if (document.getElementById("modal-overlay").classList.contains("open")) return;
+    if (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA") return;
+    if (currentMode !== "daily") return;
+    const gameVisible = document.getElementById("game-card").style.display !== "none";
+    if (!gameVisible) return;
+    const submitted = document.getElementById("next-btn").style.display !== "none";
+    if (!submitted && e.key >= "1" && e.key <= "5") {
+      const idx = parseInt(e.key) - 1;
+      if (idx < puzzle[current].choices.length) selectChoice(idx);
+    } else if (e.key === "Enter") {
+      if (!submitted && selectedChoice !== null) submitAnswer();
+      else if (submitted) nextRound();
+    }
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // HIGHER OR LOWER MODE
+  // ═══════════════════════════════════════════════════════════════
+
+  let hlLoaded = false;
+
+  async function loadHlMode() {
+    if (hlLoaded && hlPairs.length) return;
+    document.getElementById("hl-loading").style.display = "block";
+    document.getElementById("hl-game").style.display = "none";
+    document.getElementById("hl-results").style.display = "none";
+    try {
+      const res = await fetch("/api/puzzle/hl");
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById("hl-loading").innerHTML = `<p style="color:var(--red);font-family:'IBM Plex Mono',monospace">Error: ${data.error}</p>`;
+        return;
+      }
+      hlPairs = data.pairs;
+      hlLoaded = true;
+      resetHlMode(false);
+    } catch(e) {
+      document.getElementById("hl-loading").innerHTML = `<p style="color:var(--red);font-family:'IBM Plex Mono',monospace">Failed to load.</p>`;
+    }
+  }
+
+  function resetHlMode(refetch) {
+    hlCurrent = 0; hlScore = 0; hlResults = [];
+    if (refetch === false) {
+      // Already have pairs, just reset UI
+    }
+    // Build progress bar
+    const progEl = document.getElementById("hl-progress");
+    progEl.innerHTML = hlPairs.slice(0, 10).map((_, i) =>
+      `<div class="hl-prog-seg" id="hl-prog-${i}"></div>`
+    ).join("");
+
+    document.getElementById("hl-loading").style.display = "none";
+    document.getElementById("hl-results").style.display = "none";
+    document.getElementById("hl-game").style.display = "block";
+    showHlRound(0);
+  }
+
+  function showHlRound(idx) {
+    if (idx >= hlPairs.length || idx >= 10) { showHlResults(); return; }
+    hlCurrent = idx;
+    const pair = hlPairs[idx];
+
+    // Update progress
+    for (let i = 0; i < Math.min(10, hlPairs.length); i++) {
+      const s = document.getElementById(`hl-prog-${i}`);
+      if (s) s.className = "hl-prog-seg" + (i < idx ? " done" : i === idx ? " active" : "");
+    }
+
+    document.getElementById("hl-name-a").textContent   = pair.a.name;
+    document.getElementById("hl-ticker-a").textContent = pair.a.ticker;
+    document.getElementById("hl-name-b").textContent   = pair.b.name;
+    document.getElementById("hl-ticker-b").textContent = pair.b.ticker;
+
+    const ra = document.getElementById("hl-reveal-a");
+    const rb = document.getElementById("hl-reveal-b");
+    ra.style.display = "none"; rb.style.display = "none";
+
+    ["a","b"].forEach(side => {
+      const card = document.getElementById(`hl-card-${side}`);
+      card.className = "hl-card";
+      card.onclick = () => hlSelectCard(side);
+    });
+
+    document.getElementById("hl-feedback").style.display = "none";
+    document.getElementById("hl-score-display").textContent = `Score: ${hlScore} / 1000`;
+  }
+
+  function hlSelectCard(side) {
+    const pair = hlPairs[hlCurrent];
+    const correct = side === pair.correct;
+    const pts = correct ? 100 : 0;
+    hlScore += pts;
+    hlResults.push({ pair, selected: side, correct, pts });
+
+    // Disable both cards
+    ["a","b"].forEach(s => {
+      const card = document.getElementById(`hl-card-${s}`);
+      card.classList.add("disabled");
+      card.onclick = null;
+    });
+
+    // Highlight after 500ms
+    setTimeout(() => {
+      document.getElementById(`hl-card-${side}`).classList.add(correct ? "correct" : "wrong");
+      document.getElementById(`hl-card-${pair.correct}`).classList.add("correct");
+
+      const fb = document.getElementById("hl-feedback");
+      fb.style.display = "block";
+      fb.className = correct ? "correct" : "wrong";
+      fb.textContent = correct ? `✔ CORRECT  +100 PTS` : `✘ ${pair.correct.toUpperCase()} had the higher market cap`;
+
+      document.getElementById("hl-score-display").textContent = `Score: ${hlScore} / 1000`;
+
+      // Auto-advance after 1.5s
+      setTimeout(() => {
+        showHlRound(hlCurrent + 1);
+      }, 1500);
+    }, 500);
+  }
+
+  async function showHlResults() {
+    document.getElementById("hl-game").style.display = "none";
+    const rows = document.getElementById("hl-results-rows");
+    rows.innerHTML = "";
+    hlResults.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "result-row";
+      div.style.animationDelay = `${300 + idx * 100}ms`;
+      div.innerHTML = `
+        <span class="result-icon">${r.correct ? "✔" : "✘"}</span>
+        <div class="result-company">${r.pair.a.name} vs ${r.pair.b.name}</div>
+        <div class="result-pts ${r.correct ? "earned" : "missed"}">${r.pts}/100</div>`;
+      rows.appendChild(div);
+    });
+    document.getElementById("hl-perf-label").textContent = getPerformanceLabel(hlScore, 1000);
+    document.getElementById("hl-results").style.display = "block";
+    const finalEl = document.getElementById("hl-final-score");
+    finalEl.textContent = "0";
+    setTimeout(() => animateScore(finalEl, hlScore, 800), 200);
+    if (hlScore >= 800) setTimeout(() => fireConfetti(hlScore === 1000), 300);
+
+    // Guest CTA
+    document.getElementById("hl-guest-cta").style.display = currentUser ? "none" : "block";
+
+    // Save score
+    if (currentUser) {
+      const roundResults = hlResults.map(r => ({ correct: r.correct, pts: r.pts }));
+      await fetch("/api/scores", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: currentUser.id, score: hlScore, max_score: 1000, round_results: roundResults, game_mode: "hl" })
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // EXPERT MODE
+  // ═══════════════════════════════════════════════════════════════
+
+  let expertLoaded = false;
+
+  async function loadExpertMode() {
+    if (expertLoaded && expertRounds.length) return;
+    document.getElementById("expert-loading").style.display = "block";
+    document.getElementById("expert-game").style.display = "none";
+    document.getElementById("expert-results").style.display = "none";
+    try {
+      const res = await fetch("/api/puzzle/expert");
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById("expert-loading").innerHTML = `<p style="color:var(--red);font-family:'IBM Plex Mono',monospace">Error: ${data.error}</p>`;
+        return;
+      }
+      expertRounds = data.rounds;
+      expertLoaded = true;
+      resetExpertMode(false);
+    } catch(e) {
+      document.getElementById("expert-loading").innerHTML = `<p style="color:var(--red);font-family:'IBM Plex Mono',monospace">Failed to load.</p>`;
+    }
+  }
+
+  function resetExpertMode(refetch) {
+    expertCurrent = 0; expertScore = 0; expertResults = [];
+    const progEl = document.getElementById("expert-progress");
+    progEl.innerHTML = expertRounds.map((_, i) =>
+      `<div class="exp-prog-seg" id="exp-prog-${i}"></div>`
+    ).join("");
+    document.getElementById("expert-loading").style.display = "none";
+    document.getElementById("expert-results").style.display = "none";
+    document.getElementById("expert-game").style.display = "block";
+    showExpertRound(0);
+  }
+
+  function showExpertRound(idx) {
+    if (idx >= expertRounds.length) { showExpertResults(); return; }
+    expertCurrent = idx;
+    const round = expertRounds[idx];
+
+    for (let i = 0; i < expertRounds.length; i++) {
+      const s = document.getElementById(`exp-prog-${i}`);
+      if (s) s.className = "exp-prog-seg" + (i < idx ? " done" : i === idx ? " active" : "");
+    }
+
+    document.getElementById("exp-company-name").textContent   = round.name;
+    document.getElementById("exp-company-ticker").textContent = round.ticker;
+    document.getElementById("exp-ceo").textContent  = round.ceo;
+    document.getElementById("exp-hq").textContent   = round.headquarters;
+
+    const ffEl = document.getElementById("exp-funfact");
+    if (round.fun_fact) {
+      document.getElementById("exp-fun-fact-text").textContent = round.fun_fact;
+      ffEl.style.display = "flex";
+    } else {
+      ffEl.style.display = "none";
+    }
+
+    const descEl = document.getElementById("exp-description");
+    if (round.description) {
+      const text = round.description.length > 120 ? round.description.slice(0, 120) + "…" : round.description;
+      descEl.textContent = text;
+      descEl.style.display = "block";
+    } else {
+      descEl.style.display = "none";
+    }
+
+    // Revenue hint
+    const revBox = document.getElementById("exp-revenue-box");
+    if (round.revenue_billion_usd && round.revenue_billion_usd > 0) {
+      document.getElementById("exp-revenue").textContent = `$${round.revenue_billion_usd.toFixed(1)}B`;
+      revBox.style.display = "block";
+    } else {
+      revBox.style.display = "none";
+    }
+
+    // Employees hint
+    const empBox = document.getElementById("exp-employees-box");
+    if (round.full_time_employees && round.full_time_employees > 0) {
+      document.getElementById("exp-employees").textContent = round.full_time_employees.toLocaleString();
+      empBox.style.display = "block";
+    } else {
+      empBox.style.display = "none";
+    }
+
+    document.getElementById("expert-input").value = "";
+    document.getElementById("expert-feedback").style.display = "none";
+    document.getElementById("expert-submit-btn").style.display = "block";
+    document.getElementById("expert-next-btn").style.display = "none";
+    document.getElementById("expert-score-display").textContent = `Score: ${expertScore} / 1500`;
+  }
+
+  function expertSubmit() {
+    const raw = document.getElementById("expert-input").value.trim();
+    const guess = parseFloat(raw);
+    if (isNaN(guess) || guess <= 0) {
+      document.getElementById("expert-feedback").textContent = "Enter a valid number (in billions).";
+      document.getElementById("expert-feedback").className = "miss";
+      document.getElementById("expert-feedback").style.display = "block";
+      return;
+    }
+    const round = expertRounds[expertCurrent];
+    const actual = round.actual_cap_billion;
+    const ratio = Math.max(guess, actual) / Math.min(guess, actual);
+    const pctOff = Math.round((ratio - 1) * 100);
+
+    let pts = 0;
+    let grade = "";
+    if (ratio <= 1.1) { pts = 300; grade = "great"; }
+    else if (ratio <= 1.25) { pts = 200; grade = "good"; }
+    else if (ratio <= 1.5) { pts = 100; grade = "ok"; }
+    else { pts = 0; grade = "miss"; }
+
+    expertScore += pts;
+    expertResults.push({ round, guess, actual, pts, pctOff });
+
+    const fb = document.getElementById("expert-feedback");
+    fb.className = grade;
+    fb.style.display = "block";
+    fb.textContent = `You guessed $${guess}B, actual was ${round.actual_cap} — off by ${pctOff}% → +${pts} pts`;
+
+    document.getElementById("expert-submit-btn").style.display = "none";
+    document.getElementById("expert-next-btn").style.display = "block";
+    document.getElementById("expert-next-btn").textContent =
+      expertCurrent < expertRounds.length - 1 ? "Next →" : "See Results →";
+    document.getElementById("expert-score-display").textContent = `Score: ${expertScore} / 1500`;
+  }
+
+  function expertNextRound() {
+    showExpertRound(expertCurrent + 1);
+  }
+
+  async function showExpertResults() {
+    document.getElementById("expert-game").style.display = "none";
+    const rows = document.getElementById("expert-results-rows");
+    rows.innerHTML = "";
+    expertResults.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "result-row";
+      div.style.animationDelay = `${300 + idx * 100}ms`;
+      div.innerHTML = `
+        <span class="result-icon">${r.pts > 0 ? "✔" : "✘"}</span>
+        <div class="result-company">${r.round.name}<div class="result-ticker">${r.round.ticker} · guess: $${r.guess}B · actual: ${r.round.actual_cap}</div></div>
+        <div class="result-pts ${r.pts > 0 ? "earned" : "missed"}">${r.pts}/300</div>`;
+      rows.appendChild(div);
+    });
+    document.getElementById("exp-perf-label").textContent = getPerformanceLabel(expertScore, 1500);
+    document.getElementById("expert-results").style.display = "block";
+    const finalEl = document.getElementById("exp-final-score");
+    finalEl.textContent = "0";
+    setTimeout(() => animateScore(finalEl, expertScore, 800), 200);
+    if (expertScore >= 1200) setTimeout(() => fireConfetti(expertScore === 1500), 300);
+
+    document.getElementById("exp-guest-cta").style.display = currentUser ? "none" : "block";
+
+    if (currentUser) {
+      const roundResults = expertResults.map(r => ({ ticker: r.round.ticker, guess: r.guess, actual: r.actual, pts: r.pts }));
+      await fetch("/api/scores", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: currentUser.id, score: expertScore, max_score: 1500, round_results: roundResults, game_mode: "expert" })
+      });
+    }
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // BATTLE ROYALE MODE
+  // ═══════════════════════════════════════════════════════════════
+
+  async function loadBattleMode() {
+    // Load users
+    try {
+      const res = await fetch("/api/users");
+      const data = await res.json();
+      allBattleUsers = data;
+      renderBattleUsers(allBattleUsers);
+    } catch(e) {
+      document.getElementById("battle-user-list").innerHTML = `<div class="lb-empty">Could not load players.</div>`;
+    }
+    // Load battle standings
+    try {
+      const res = await fetch("/api/battle/leaderboard");
+      const data = await res.json();
+      document.getElementById("battle-lb-body").innerHTML = renderBattleLeaderboard(data);
+    } catch(e) {
+      document.getElementById("battle-lb-body").innerHTML = `<div class="lb-empty">Could not load standings.</div>`;
+    }
+  }
+
+  function renderBattleUsers(users) {
+    const listEl = document.getElementById("battle-user-list");
+    if (!users.length) {
+      listEl.innerHTML = `<div class="lb-empty">No players found.</div>`;
+      return;
+    }
+    const myId = currentUser ? currentUser.id : null;
+    listEl.innerHTML = users
+      .filter(u => u.id !== myId)
+      .map(u => `
+        <div class="battle-user-row">
+          <span class="battle-username">${u.username}</span>
+          <button class="battle-challenge-btn" onclick="sendBattleChallenge(${u.id}, '${u.username.replace(/'/g, "\\'")}')">Challenge</button>
+        </div>
+      `).join("");
+  }
+
+  function filterBattleUsers() {
+    const q = document.getElementById("battle-search").value.toLowerCase();
+    const filtered = allBattleUsers.filter(u => u.username.toLowerCase().includes(q));
+    renderBattleUsers(filtered);
+  }
+
+  function sendBattleChallenge(oppId, oppUsername) {
+    if (!currentUser) { showModal(); return; }
+    const link = `${APP_URL}/?battle=${currentUser.id}&opp=${oppId}`;
+    navigator.clipboard.writeText(link)
+      .then(() => {
+        const toast = document.getElementById("battle-copy-toast");
+        toast.textContent = `Link copied! Send it to ${oppUsername}`;
+        setTimeout(() => toast.textContent = "", 3000);
+      })
+      .catch(() => {
+        const toast = document.getElementById("battle-copy-toast");
+        toast.textContent = `Challenge link: ${link}`;
+        setTimeout(() => toast.textContent = "", 5000);
+      });
+  }
+
+  // ═══════════════════════════════════════════════════════════════
+  // BOOT
+  // ═══════════════════════════════════════════════════════════════
+
+  // Initialise daily quiz (no registration wall — Change 6)
   init();
 </script>
 </body>
