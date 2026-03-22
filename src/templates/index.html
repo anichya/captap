@@ -561,6 +561,7 @@
     <!-- Game card -->
     <div class="card" id="game-card" style="display:none">
       <div class="card-inner">
+        <div id="battle-quiz-banner" style="display:none;background:#12100a;border:1px solid var(--gold);border-radius:3px;padding:9px 14px;margin-bottom:14px;font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--gold);letter-spacing:0.5px;"></div>
         <div id="tier-badge" class="tier-badge"></div>
         <!-- Round timer (Change 1) -->
         <div id="round-timer">0:00.0</div>
@@ -802,9 +803,11 @@
   const _urlParams = new URLSearchParams(window.location.search);
   const challengerName  = _urlParams.get("c");
   const challengerScore = parseInt(_urlParams.get("s") || "0", 10);
-  // Battle params
-  const battleChallengerIdParam = parseInt(_urlParams.get("battle") || "0", 10);
-  const battleOpponentIdParam   = parseInt(_urlParams.get("opp") || "0", 10);
+  // Battle params (challenger sends: ?battle=ID&opp=OPP_ID&cs=SCORE&cn=NAME)
+  const battleChallengerIdParam    = parseInt(_urlParams.get("battle") || "0", 10);
+  const battleOpponentIdParam      = parseInt(_urlParams.get("opp")    || "0", 10);
+  const battleChallengerScoreParam = parseInt(_urlParams.get("cs")     || "0", 10);
+  const battleChallengerNameParam  = _urlParams.get("cn") || "";
 
   // ═══════════════════════════════════════════════════════════════
   // HELPERS
@@ -1262,6 +1265,14 @@
       document.getElementById("loading").style.display = "none";
       roundTimes = [];
       totalGameTime = 0;
+
+      // Show battle banner if arriving via challenge link
+      if (battleChallengerIdParam && battleChallengerNameParam && battleChallengerScoreParam) {
+        const banner = document.getElementById("battle-quiz-banner");
+        banner.textContent = `⚔ You're challenging ${decodeURIComponent(battleChallengerNameParam)} — their score: ${battleChallengerScoreParam}/1000`;
+        banner.style.display = "block";
+      }
+
       showRound(0);
     } catch(e) {
       document.getElementById("loading").querySelector(".card-inner").innerHTML =
@@ -1450,39 +1461,35 @@
       fetchAndShowStats(currentUser.id);
     }
 
-    // Challenge result
-    if (challengerName && challengerScore && !isPractice) {
+    // Battle / challenge result banner
+    const rivalName  = battleChallengerNameParam ? decodeURIComponent(battleChallengerNameParam) : challengerName;
+    const rivalScore = battleChallengerScoreParam || challengerScore;
+    if (rivalName && rivalScore && !isPractice) {
       const banner = document.getElementById("challenge-banner");
       if (banner) {
-        const diff = totalScore - challengerScore;
-        if (diff > 0) banner.innerHTML = `🏆 You beat <b>${challengerName}</b>'s score of ${challengerScore} by ${diff} pts!`;
-        else if (diff < 0) banner.innerHTML = `😔 <b>${challengerName}</b> beat you by ${Math.abs(diff)} pts (${challengerScore} vs your ${totalScore})`;
-        else banner.innerHTML = `🤝 Tied with <b>${challengerName}</b> at ${totalScore} pts!`;
+        const diff = totalScore - rivalScore;
+        if (diff > 0) banner.innerHTML = `🏆 You beat <b>${rivalName}</b>'s score of ${rivalScore} by ${diff} pts!`;
+        else if (diff < 0) banner.innerHTML = `😔 <b>${rivalName}</b> beat you by ${Math.abs(diff)} pts (${rivalScore} vs your ${totalScore})`;
+        else banner.innerHTML = `🤝 Tied with <b>${rivalName}</b> at ${totalScore} pts!`;
         banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
-        banner.style.border = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
-        banner.style.color = diff >= 0 ? "#4caf50" : "#ef5350";
-        banner.style.display = "block";
+        banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
+        banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
+        banner.style.display    = "block";
       }
     }
 
-    // Auto-record battle if arriving via ?battle= params
+    // Auto-record battle to DB if arriving via ?battle= params
     if (battleChallengerIdParam && battleOpponentIdParam && currentUser && !isPractice) {
-      // If current user is the opponent
-      if (currentUser.id === battleOpponentIdParam) {
-        // Fetch challenger's score from leaderboard to get opponent_score
-        // We record what we know: challenger_id, opponent_id=currentUser.id, scores
-        // The challenger_score would be fetched but we only know our score here.
-        // Record battle with opponent_score = our score; challenger_score unknown server-side
-        // We'll just record what we have
+      if (currentUser.id === battleOpponentIdParam && battleChallengerScoreParam > 0) {
         try {
           await fetch("/api/battle", {
             method: "POST", headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
-              challenger_id: battleChallengerIdParam,
-              opponent_id: battleOpponentIdParam,
-              challenger_score: 0,
-              opponent_score: totalScore,
-              played_at: todayStr()
+              challenger_id:    battleChallengerIdParam,
+              opponent_id:      battleOpponentIdParam,
+              challenger_score: battleChallengerScoreParam,
+              opponent_score:   totalScore,
+              played_at:        todayStr()
             })
           });
         } catch(e) {}
@@ -1949,17 +1956,27 @@
 
   function sendBattleChallenge(oppId, oppUsername) {
     if (!currentUser) { showModal(); return; }
-    const link = `${APP_URL}/?battle=${currentUser.id}&opp=${oppId}`;
+    const myScore = localStorage.getItem("captap_last_score");
+    if (!myScore || localStorage.getItem("captap_played_date") !== todayStr()) {
+      const toast = document.getElementById("battle-copy-toast");
+      toast.style.color = "var(--red)";
+      toast.textContent = "Play today's Daily Quiz first — your score gets embedded in the link!";
+      setTimeout(() => { toast.textContent = ""; toast.style.color = ""; }, 4000);
+      return;
+    }
+    const name = encodeURIComponent(currentUser.username);
+    const link = `${APP_URL}/?battle=${currentUser.id}&opp=${oppId}&cs=${myScore}&cn=${name}`;
     navigator.clipboard.writeText(link)
       .then(() => {
         const toast = document.getElementById("battle-copy-toast");
-        toast.textContent = `Link copied! Send it to ${oppUsername}`;
-        setTimeout(() => toast.textContent = "", 3000);
+        toast.style.color = "";
+        toast.textContent = `✔ Challenge link copied! Send it to ${oppUsername}`;
+        setTimeout(() => toast.textContent = "", 3500);
       })
       .catch(() => {
         const toast = document.getElementById("battle-copy-toast");
-        toast.textContent = `Challenge link: ${link}`;
-        setTimeout(() => toast.textContent = "", 5000);
+        toast.textContent = link;
+        setTimeout(() => toast.textContent = "", 6000);
       });
   }
 
