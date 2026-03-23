@@ -573,11 +573,12 @@
         </div>
         <div class="company-meta">
           <div class="meta-item"><span class="meta-label">CEO</span><span class="meta-value" id="company-ceo"></span></div>
-          <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value"  id="company-hq"></span></div>
+          <div class="meta-item"><span class="meta-label">HQ</span><span class="meta-value" id="company-hq"></span></div>
+          <div class="meta-item"><span class="meta-label">LTM Revenue</span><span class="meta-value" id="company-rev"></span></div>
         </div>
-        <!-- Fun fact FIRST (Change 2) -->
+        <!-- Fun fact FIRST -->
         <div class="company-funfact" id="company-funfact" style="display:none">
-          <span>▸</span><span id="fun-fact-text"></span>
+          <span>💡</span><span id="fun-fact-text"></span>
         </div>
         <!-- Description truncated to 120 chars (Change 2) -->
         <div class="company-description" id="company-description" style="display:none"></div>
@@ -1333,8 +1334,13 @@
 
     document.getElementById("company-name").textContent   = round.name;
     document.getElementById("company-ticker").textContent = round.ticker;
-    document.getElementById("company-ceo").textContent    = round.ceo;
-    document.getElementById("company-hq").textContent     = round.headquarters;
+    document.getElementById("company-ceo").textContent = round.ceo;
+    document.getElementById("company-hq").textContent  = round.headquarters;
+    const rev = round.revenue_billion_usd || 0;
+    document.getElementById("company-rev").textContent =
+      rev >= 1000 ? `$${(rev/1000).toFixed(2)}T` :
+      rev >= 1    ? `$${rev.toFixed(1)}B` :
+      rev > 0     ? `$${(rev*1000).toFixed(0)}M` : "N/A";
 
     // Fun fact FIRST (Change 2)
     const fact = document.getElementById("company-funfact");

@@ -156,14 +156,25 @@ def fetch_company(display_ticker: str, yf_ticker: str, name: str) -> Company | N
 
     summary = info.get("longBusinessSummary", "")
 
-    # description = first sentence only; fun_fact = second sentence only
+    # description = first sentence (company intro)
+    # fun_fact = most interesting sentence: prefer ones with specific details,
+    # numbers, brands, or history over generic operational descriptions
     description = ""
     fun_fact = ""
     if summary:
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 20]
+        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 40]
         if sentences:
             description = sentences[0]
-        if len(sentences) >= 2:
+        interesting_markers = [
+            "founded", "billion", "million", "largest", "first", "world",
+            "brand", "serves", "customers", "history", "pioneer", "leading",
+            "acquired", "invented", "known for", "famous", "headquartered",
+        ]
+        for s in sentences[1:]:
+            if any(m in s.lower() for m in interesting_markers) and len(s) <= 220:
+                fun_fact = s
+                break
+        if not fun_fact and len(sentences) >= 2:
             fun_fact = sentences[1]
 
     # Expert mode fields
