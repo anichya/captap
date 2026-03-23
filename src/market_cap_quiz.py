@@ -156,26 +156,45 @@ def fetch_company(display_ticker: str, yf_ticker: str, name: str) -> Company | N
 
     summary = info.get("longBusinessSummary", "")
 
-    # description = first sentence (company intro)
-    # fun_fact = most interesting sentence: prefer ones with specific details,
-    # numbers, brands, or history over generic operational descriptions
+    # Split on sentence boundaries while ignoring abbreviations like Inc., Corp., Ltd., Co., U.S., etc.
     description = ""
     fun_fact = ""
     if summary:
-        sentences = [s.strip() for s in re.split(r"(?<=[.!?])\s+", summary.strip()) if len(s.strip()) > 40]
+        # Replace known abbreviation periods temporarily so they don't split sentences
+        abbrev_pattern = re.compile(
+            r'\b(Inc|Corp|Ltd|Co|U\.S|U\.K|Dr|Mr|Mrs|Ms|Jr|Sr|vs|etc|approx|est)\.'
+        )
+        protected = abbrev_pattern.sub(lambda m: m.group(0).replace(".", "\x00"), summary.strip())
+        raw_sentences = re.split(r"(?<=[.!?])\s+(?=[A-Z])", protected)
+        sentences = [s.replace("\x00", ".").strip() for s in raw_sentences if len(s.strip()) > 30]
+
+        # description = first 1-2 sentences that give a solid intro (~200 chars)
         if sentences:
-            description = sentences[0]
+            desc_parts = [sentences[0]]
+            if len(sentences) > 1 and len(sentences[0]) < 120:
+                desc_parts.append(sentences[1])
+            description = " ".join(desc_parts)
+            if len(description) > 280:
+                description = description[:277].rstrip() + "..."
+
+        # fun_fact = most interesting later sentence with specific details, numbers, or history
         interesting_markers = [
             "founded", "billion", "million", "largest", "first", "world",
             "brand", "serves", "customers", "history", "pioneer", "leading",
             "acquired", "invented", "known for", "famous", "headquartered",
+            "products", "operates in", "countries",
         ]
-        for s in sentences[1:]:
-            if any(m in s.lower() for m in interesting_markers) and len(s) <= 220:
+        for s in sentences[2:]:
+            if any(m in s.lower() for m in interesting_markers) and 40 <= len(s) <= 220:
                 fun_fact = s
                 break
-        if not fun_fact and len(sentences) >= 2:
-            fun_fact = sentences[1]
+        if not fun_fact:
+            # Fall back to the sentence right after the description
+            fallback_start = 2 if len(sentences) > 2 else 1
+            for s in sentences[fallback_start:]:
+                if len(s) >= 40:
+                    fun_fact = s
+                    break
 
     # Expert mode fields
     total_revenue = info.get("totalRevenue")
