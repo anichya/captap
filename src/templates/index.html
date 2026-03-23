@@ -444,7 +444,7 @@
 <body>
 
 <!-- Registration modal -->
-<div id="modal-overlay">
+<div id="modal-overlay" onclick="if(event.target===this)hideModal()"
   <div id="modal">
     <div id="modal-close" onclick="hideModal()" style="display:none;position:absolute;top:16px;right:18px;font-size:1.2rem;cursor:pointer;color:var(--muted);">✕</div>
     <h2 id="modal-title">Welcome to CapTap</h2>
@@ -466,7 +466,7 @@
 </div>
 
 <!-- Leaderboard modal -->
-<div id="lb-modal-overlay">
+<div id="lb-modal-overlay" onclick="if(event.target===this)closeLbModal()"
   <div id="lb-modal">
     <div onclick="closeLbModal()" style="position:absolute;top:14px;right:16px;font-size:1.1rem;cursor:pointer;color:var(--muted);">✕</div>
     <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:16px;">Leaderboard</div>
@@ -500,7 +500,7 @@
   <div class="edition-line">
     <span id="edition-date"></span>
   </div>
-  <div class="brand">CapTap</div>
+  <div class="brand" style="cursor:pointer;" onclick="goHome()">CapTap</div>
   <div class="tagline">The Market Cap Intelligence Quiz</div>
   <div class="masthead-rule"></div>
   <div class="masthead-rule2"></div>
@@ -991,7 +991,7 @@
 
   function showModal() {
     const isEdit = !!currentUser;
-    document.getElementById("modal-close").style.display    = isEdit ? "block" : "none";
+    document.getElementById("modal-close").style.display    = "block";
     document.getElementById("modal-logout").style.display   = isEdit ? "block" : "none";
     document.getElementById("modal-title").textContent      = isEdit ? "Edit Profile" : "Welcome to CapTap";
     document.getElementById("modal-subtitle").textContent   = isEdit
@@ -1015,7 +1015,6 @@
   }
 
   function hideModal() {
-    if (!currentUser) return;
     document.getElementById("modal-overlay").classList.remove("open");
   }
 
@@ -1618,6 +1617,14 @@
     navigator.clipboard.writeText(buildShareText(mode))
       .then(() => _showToast("▸ Copied to clipboard"))
       .catch(() => _showToast("▸ Copy failed — select and copy manually"));
+  }
+
+  function goHome() {
+    // Reset to daily quiz, round 1
+    isBattleMode = false;
+    activeBattleId = null;
+    switchMode("daily");
+    playAgain();
   }
 
   function playAgain() {
