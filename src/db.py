@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import secrets
 from contextlib import contextmanager
 
 import psycopg2
@@ -84,6 +85,29 @@ def init_db() -> None:
                     winner_id        INTEGER REFERENCES users(id),
                     created_at       TIMESTAMP DEFAULT NOW(),
                     UNIQUE(challenger_id, opponent_id, played_at)
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS battle_puzzles (
+                    id             SERIAL PRIMARY KEY,
+                    battle_id      VARCHAR(20) UNIQUE NOT NULL,
+                    challenger_id  INTEGER REFERENCES users(id),
+                    opponent_id    INTEGER REFERENCES users(id),
+                    companies_data JSONB NOT NULL,
+                    created_at     TIMESTAMP DEFAULT NOW()
+                )
+            """)
+            cur.execute("""
+                CREATE TABLE IF NOT EXISTS battle_scores (
+                    id                 SERIAL PRIMARY KEY,
+                    battle_id          VARCHAR(20) NOT NULL,
+                    user_id            INTEGER REFERENCES users(id),
+                    score              INTEGER NOT NULL,
+                    max_score          INTEGER NOT NULL,
+                    total_time_seconds FLOAT,
+                    round_results      JSONB,
+                    created_at         TIMESTAMP DEFAULT NOW(),
+                    UNIQUE(battle_id, user_id)
                 )
             """)
 
@@ -333,6 +357,116 @@ def save_battle(
                 (challenger_id, opponent_id, challenger_score, opponent_score, winner_id, played_at),
             )
             return cur.rowcount > 0
+
+
+def create_battle_puzzle(challenger_id: int, opponent_id: int, companies_data: list[dict]) -> str:
+    """Generate a unique battle_id, store puzzle, return battle_id."""
+    battle_id = secrets.token_urlsafe(10)
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO battle_puzzles (battle_id, challenger_id, opponent_id, companies_data)
+                   VALUES (%s, %s, %s, %s)""",
+                (battle_id, challenger_id, opponent_id, json.dumps(companies_data)),
+            )
+    return battle_id
+
+
+def get_battle_puzzle(battle_id: str) -> dict | None:
+    """Return puzzle dict with company data and player names, or None if not found."""
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """SELECT bp.battle_id, bp.challenger_id, bp.opponent_id,
+                          bp.companies_data,
+                          uc.username AS challenger_name,
+                          uo.username AS opponent_name
+                   FROM battle_puzzles bp
+                   JOIN users uc ON uc.id = bp.challenger_id
+                   LEFT JOIN users uo ON uo.id = bp.opponent_id
+                   WHERE bp.battle_id = %s""",
+                (battle_id,),
+            )
+            row = cur.fetchone()
+            if not row:
+                return None
+            return dict(row)
+
+
+def save_battle_score(
+    battle_id: str,
+    user_id: int,
+    score: int,
+    max_score: int,
+    total_time_seconds: float | None,
+    round_results: list,
+) -> bool:
+    """Save a player's score for a battle. Returns True if saved, False if already exists."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO battle_scores
+                       (battle_id, user_id, score, max_score, total_time_seconds, round_results)
+                   VALUES (%s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (battle_id, user_id) DO NOTHING""",
+                (battle_id, user_id, score, max_score, total_time_seconds, json.dumps(round_results)),
+            )
+            return cur.rowcount > 0
+
+
+def get_battle_scores(battle_id: str) -> list[dict]:
+    """Return list of {user_id, username, score, max_score, total_time_seconds} for a battle."""
+    with get_conn() as conn:
+        with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+            cur.execute(
+                """SELECT bs.user_id, u.username, bs.score, bs.max_score, bs.total_time_seconds
+                   FROM battle_scores bs
+                   JOIN users u ON u.id = bs.user_id
+                   WHERE bs.battle_id = %s
+                   ORDER BY bs.created_at ASC""",
+                (battle_id,),
+            )
+            return [dict(r) for r in cur.fetchall()]
+
+
+def record_battle_result(battle_id: str) -> None:
+    """If both players have submitted scores, upsert into the battles W/L table."""
+    puzzle = get_battle_puzzle(battle_id)
+    if not puzzle:
+        return
+    scores = get_battle_scores(battle_id)
+    if len(scores) < 2:
+        return  # Both haven't played yet
+
+    challenger_id = puzzle["challenger_id"]
+    opponent_id   = puzzle["opponent_id"]
+
+    challenger_entry = next((s for s in scores if s["user_id"] == challenger_id), None)
+    opponent_entry   = next((s for s in scores if s["user_id"] == opponent_id), None)
+
+    if not challenger_entry or not opponent_entry:
+        return
+
+    challenger_score = challenger_entry["score"]
+    opponent_score   = opponent_entry["score"]
+    winner_id = challenger_id if challenger_score >= opponent_score else opponent_id
+
+    from datetime import datetime
+    from zoneinfo import ZoneInfo
+    played_at = datetime.now(ZoneInfo("America/New_York")).strftime("%Y-%m-%d")
+
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """INSERT INTO battles
+                       (challenger_id, opponent_id, challenger_score, opponent_score, winner_id, played_at)
+                   VALUES (%s, %s, %s, %s, %s, %s)
+                   ON CONFLICT (challenger_id, opponent_id, played_at) DO UPDATE
+                     SET challenger_score = EXCLUDED.challenger_score,
+                         opponent_score   = EXCLUDED.opponent_score,
+                         winner_id        = EXCLUDED.winner_id""",
+                (challenger_id, opponent_id, challenger_score, opponent_score, winner_id, played_at),
+            )
 
 
 def get_battle_leaderboard() -> list[dict]:

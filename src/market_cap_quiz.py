@@ -300,6 +300,71 @@ def get_daily_companies(
 
 
 # ---------------------------------------------------------------------------
+# Battle puzzle selection
+# ---------------------------------------------------------------------------
+
+def get_battle_companies(
+    sp500_universe: list[tuple[str, str, str]],
+    daily_cache: dict[str, dict],
+    battle_id: str,
+) -> list[Company]:
+    """Return 5 companies for a battle puzzle, seeded by battle_id.
+    Mix: 2 easy + 1 medium + 2 hard (same structure as daily quiz)."""
+    rng = random.Random(battle_id)
+    candidates = rng.sample(sp500_universe, len(sp500_universe))
+
+    easy:   list[Company] = []
+    medium: list[Company] = []
+    hard:   list[Company] = []
+
+    for display_ticker, yf_ticker, name in candidates:
+        if len(easy) >= 2 and len(medium) >= 1 and len(hard) >= 2:
+            break
+        cached = daily_cache.get(display_ticker)
+        if cached:
+            company = Company(
+                name=str(cached["name"]),
+                ticker=display_ticker,
+                market_cap_billion_usd=float(cached["market_cap_billion_usd"]),
+                ceo=str(cached.get("ceo", "N/A")),
+                headquarters=str(cached.get("headquarters", "N/A")),
+                logo_url=str(cached.get("logo_url", "")),
+                description=str(cached.get("description", "")),
+                fun_fact=str(cached.get("fun_fact", "")),
+                revenue_billion_usd=float(cached.get("revenue_billion_usd", 0.0)),
+                full_time_employees=int(cached.get("full_time_employees", 0)),
+            )
+        else:
+            company = fetch_company(display_ticker, yf_ticker, name)
+            if company is None:
+                continue
+            daily_cache[display_ticker] = {
+                "name": company.name,
+                "market_cap_billion_usd": company.market_cap_billion_usd,
+                "ceo": company.ceo,
+                "headquarters": company.headquarters,
+                "logo_url": company.logo_url,
+                "description": company.description,
+                "fun_fact": company.fun_fact,
+                "revenue_billion_usd": company.revenue_billion_usd,
+                "full_time_employees": company.full_time_employees,
+            }
+
+        pts = company.points_available
+        if pts == 100 and len(easy) < 2:
+            easy.append(company)
+        elif pts == 200 and len(medium) < 1:
+            medium.append(company)
+        elif pts == 300 and len(hard) < 2:
+            hard.append(company)
+
+    if len(easy) < 2 or len(medium) < 1 or len(hard) < 2:
+        raise RuntimeError("Not enough companies for battle puzzle")
+
+    return easy + medium + hard
+
+
+# ---------------------------------------------------------------------------
 # Round logic
 # ---------------------------------------------------------------------------
 

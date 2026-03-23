@@ -745,13 +745,25 @@
 
   <!-- ══════════════════════════════════════════ BATTLE ROYALE MODE ═══ -->
   <div id="battle-mode" style="display:none;">
+    <!-- Battle quiz card (shown when playing a battle via ?bid=) -->
+    <div id="battle-quiz-card" style="display:none;">
+      <!-- Battle quiz content is rendered via JS into #game-card in daily-mode.
+           This placeholder is used to show loading / results for battles
+           launched from the Battle Royale tab. -->
+    </div>
     <!-- Challenge panel -->
-    <div class="battle-panel">
+    <div class="battle-panel" id="battle-challenge-panel">
       <h3>Challenge a Player</h3>
-      <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.5;">Play today's Daily Quiz, then send a challenge link to a friend. When they finish, the battle result is auto-recorded.</p>
-      <input id="battle-search" type="text" placeholder="Search players…" oninput="filterBattleUsers()" />
-      <div id="battle-user-list"><div class="lb-empty">Loading players…</div></div>
-      <div id="battle-copy-toast"></div>
+      <div id="battle-not-logged-in" style="display:none;text-align:center;padding:12px 0;">
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.5;">Sign in to create a private 5-company puzzle and challenge a friend.</p>
+        <button class="guest-cta-btn" onclick="showModal()">Sign In to Challenge</button>
+      </div>
+      <div id="battle-logged-in-panel">
+        <p style="font-size:0.8rem;color:var(--muted);margin-bottom:14px;line-height:1.5;">Select a player to create a private battle — both of you will solve the same 5 companies independently.</p>
+        <input id="battle-search" type="text" placeholder="Search players…" oninput="filterBattleUsers()" />
+        <div id="battle-user-list"><div class="lb-empty">Loading players…</div></div>
+      </div>
+      <div id="battle-copy-toast" style="font-family:'IBM Plex Mono',monospace;font-size:0.72rem;color:var(--green2);text-align:center;min-height:16px;margin-top:8px;line-height:1.6;"></div>
     </div>
     <!-- Battle standings -->
     <div class="battle-panel">
@@ -797,6 +809,16 @@
 
   // Battle state
   let allBattleUsers = [];
+  // Battle quiz state (separate from daily quiz)
+  let isBattleMode = false;
+  let activeBattleId = null;
+  let battlePuzzle = [];
+  let battleCurrent = 0;
+  let battleScore = 0;
+  let battleResults = [];
+  let battleMeta = {}; // {battle_id, challenger_name, opponent_name}
+  let battleRoundTimes = [];
+  let battleTotalTime = 0;
 
   // User
   let currentUser = JSON.parse(localStorage.getItem("captap_user") || "null");
@@ -805,11 +827,8 @@
   const _urlParams = new URLSearchParams(window.location.search);
   const challengerName  = _urlParams.get("c");
   const challengerScore = parseInt(_urlParams.get("s") || "0", 10);
-  // Battle params (challenger sends: ?battle=ID&opp=OPP_ID&cs=SCORE&cn=NAME)
-  const battleChallengerIdParam    = parseInt(_urlParams.get("battle") || "0", 10);
-  const battleOpponentIdParam      = parseInt(_urlParams.get("opp")    || "0", 10);
-  const battleChallengerScoreParam = parseInt(_urlParams.get("cs")     || "0", 10);
-  const battleChallengerNameParam  = _urlParams.get("cn") || "";
+  // Battle Royale private link param
+  const battleIdParam = _urlParams.get("bid") || null;
 
   // ═══════════════════════════════════════════════════════════════
   // HELPERS
@@ -1240,6 +1259,13 @@
   }
 
   async function init() {
+    // If arriving via a battle link, skip the daily quiz entirely
+    if (battleIdParam) {
+      document.getElementById("loading").style.display = "none";
+      loadBattleQuiz(battleIdParam);
+      return;
+    }
+
     // No registration wall (Change 6) — guests play immediately
     if (localStorage.getItem("captap_played_date") === todayStr()) {
       document.getElementById("loading").style.display = "none";
@@ -1269,13 +1295,6 @@
       roundTimes = [];
       totalGameTime = 0;
 
-      // Show battle banner if arriving via challenge link
-      if (battleChallengerIdParam && battleChallengerNameParam && battleChallengerScoreParam) {
-        const banner = document.getElementById("battle-quiz-banner");
-        banner.textContent = `⚔ You're challenging ${decodeURIComponent(battleChallengerNameParam)} — their score: ${battleChallengerScoreParam}/1000`;
-        banner.style.display = "block";
-      }
-
       showRound(0);
     } catch(e) {
       document.getElementById("loading").querySelector(".card-inner").innerHTML =
@@ -1289,8 +1308,18 @@
 
   function showRound(idx) {
     selectedChoice = null;
-    const round = puzzle[idx];
+    const activePuzzle = isBattleMode ? battlePuzzle : puzzle;
+    const round = activePuzzle[idx];
     document.getElementById("game-card").style.display = "block";
+
+    // Battle mode: show banner with player names
+    const banner = document.getElementById("battle-quiz-banner");
+    if (isBattleMode && battleMeta.challenger_name) {
+      banner.textContent = `⚔ BATTLE: ${battleMeta.challenger_name} vs ${battleMeta.opponent_name}`;
+      banner.style.display = "block";
+    } else {
+      banner.style.display = "none";
+    }
 
     for (let i = 0; i < 5; i++) {
       const s = document.getElementById(`prog-${i}`);
@@ -1355,7 +1384,9 @@
 
   function submitAnswer() {
     if (selectedChoice === null) return;
-    const round = puzzle[current];
+    const activePuzzle = isBattleMode ? battlePuzzle : puzzle;
+    const activeIdx    = isBattleMode ? battleCurrent : current;
+    const round = activePuzzle[activeIdx];
 
     // Record round time (Change 1)
     const elapsed = recordRoundTime();
@@ -1369,9 +1400,15 @@
     if (!correct) document.getElementById(`choice-${round.correct_index}`).classList.add("correct");
 
     const pts = correct ? round.points_available : 0;
-    totalScore += pts;
-    results.push({ round, correct, pts, time: elapsed });
-    document.getElementById("score-display").textContent = `${totalScore} pts`;
+
+    if (isBattleMode) {
+      battleScore += pts;
+      battleResults.push({ round, correct, pts, time: elapsed });
+    } else {
+      totalScore += pts;
+      results.push({ round, correct, pts, time: elapsed });
+      document.getElementById("score-display").textContent = `${totalScore} pts`;
+    }
 
     const fb = document.getElementById("feedback");
     fb.style.display = "block";
@@ -1397,8 +1434,13 @@
   function nextRound() {
     if (autoAdvanceTimer) { clearTimeout(autoAdvanceTimer); autoAdvanceTimer = null; }
     document.getElementById("auto-advance-bar").style.display = "none";
-    current++;
-    current >= puzzle.length ? showResults() : showRound(current);
+    if (isBattleMode) {
+      battleCurrent++;
+      battleCurrent >= battlePuzzle.length ? showBattleResults() : showRound(battleCurrent);
+    } else {
+      current++;
+      current >= puzzle.length ? showResults() : showRound(current);
+    }
   }
 
   async function showResults() {
@@ -1465,7 +1507,7 @@
     }
 
     // Legacy ?c=name&s=score challenge banner (non-battle links)
-    if (challengerName && challengerScore && !isPractice && !battleChallengerIdParam) {
+    if (challengerName && challengerScore && !isPractice) {
       const banner = document.getElementById("challenge-banner");
       if (banner) {
         const diff = totalScore - challengerScore;
@@ -1476,48 +1518,6 @@
         banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
         banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
         banner.style.display    = "block";
-      }
-    }
-
-    // Auto-record battle to DB if arriving via ?battle= params
-    if (battleChallengerIdParam && battleOpponentIdParam && currentUser && !isPractice) {
-      if (currentUser.id === battleOpponentIdParam) {
-        // Use score from URL param — or fetch from API if challenger hadn't played when they sent the link
-        let cScore = battleChallengerScoreParam;
-        const cName = battleChallengerNameParam ? decodeURIComponent(battleChallengerNameParam) : "your challenger";
-        if (!cScore) {
-          try {
-            const r = await fetch(`/api/score/user/${battleChallengerIdParam}`);
-            const d = await r.json();
-            cScore = d.played ? d.score : 0;
-          } catch(e) {}
-        }
-        const banner = document.getElementById("challenge-banner");
-        if (cScore && banner) {
-          const diff = totalScore - cScore;
-          if (diff > 0)      banner.innerHTML = `🏆 You beat <b>${cName}</b>'s score of ${cScore} by ${diff} pts!`;
-          else if (diff < 0) banner.innerHTML = `😔 <b>${cName}</b> beat you by ${Math.abs(diff)} pts (${cScore} vs your ${totalScore})`;
-          else               banner.innerHTML = `🤝 Tied with <b>${cName}</b> at ${totalScore} pts!`;
-          banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
-          banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
-          banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
-          banner.style.display    = "block";
-        } else if (banner) {
-          banner.innerHTML = `⏳ <b>${cName}</b> hasn't played today yet — check back to see who wins!`;
-          banner.style.background = "#12100a"; banner.style.border = "1px solid #3d3010";
-          banner.style.color = "var(--gold)"; banner.style.display = "block";
-        }
-        if (cScore) {
-          try {
-            await fetch("/api/battle", {
-              method: "POST", headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                challenger_id: battleChallengerIdParam, opponent_id: battleOpponentIdParam,
-                challenger_score: cScore, opponent_score: totalScore, played_at: todayStr()
-              })
-            });
-          } catch(e) {}
-        }
       }
     }
 
@@ -1937,14 +1937,24 @@
   // ═══════════════════════════════════════════════════════════════
 
   async function loadBattleMode() {
-    // Load users
-    try {
-      const res = await fetch("/api/users");
-      const data = await res.json();
-      allBattleUsers = data;
-      renderBattleUsers(allBattleUsers);
-    } catch(e) {
-      document.getElementById("battle-user-list").innerHTML = `<div class="lb-empty">Could not load players.</div>`;
+    // Show/hide login-gated panels
+    const notLoggedIn = document.getElementById("battle-not-logged-in");
+    const loggedInPanel = document.getElementById("battle-logged-in-panel");
+    if (currentUser) {
+      notLoggedIn.style.display = "none";
+      loggedInPanel.style.display = "block";
+      // Load users
+      try {
+        const res = await fetch("/api/users");
+        const data = await res.json();
+        allBattleUsers = data;
+        renderBattleUsers(allBattleUsers);
+      } catch(e) {
+        document.getElementById("battle-user-list").innerHTML = `<div class="lb-empty">Could not load players.</div>`;
+      }
+    } else {
+      notLoggedIn.style.display = "block";
+      loggedInPanel.style.display = "none";
     }
     // Load battle standings
     try {
@@ -1963,14 +1973,17 @@
       return;
     }
     const myId = currentUser ? currentUser.id : null;
-    listEl.innerHTML = users
-      .filter(u => u.id !== myId)
-      .map(u => `
-        <div class="battle-user-row">
-          <span class="battle-username">${u.username}</span>
-          <button class="battle-challenge-btn" onclick="sendBattleChallenge(${u.id}, '${u.username.replace(/'/g, "\\'")}')">Challenge</button>
-        </div>
-      `).join("");
+    const others = users.filter(u => u.id !== myId);
+    if (!others.length) {
+      listEl.innerHTML = `<div class="lb-empty">No other players yet.</div>`;
+      return;
+    }
+    listEl.innerHTML = others.map(u => `
+      <div class="battle-user-row">
+        <span class="battle-username">${u.username}</span>
+        <button class="battle-challenge-btn" id="challenge-btn-${u.id}" onclick="sendBattleChallenge(${u.id}, '${u.username.replace(/'/g, "\\'")}')">Challenge →</button>
+      </div>
+    `).join("");
   }
 
   function filterBattleUsers() {
@@ -1979,24 +1992,187 @@
     renderBattleUsers(filtered);
   }
 
-  function sendBattleChallenge(oppId, oppUsername) {
+  async function sendBattleChallenge(oppId, oppUsername) {
     if (!currentUser) { showModal(); return; }
-    const name = encodeURIComponent(currentUser.username);
-    // Include score if already played today — opponent will also try fetching it via API as fallback
-    const myScore = localStorage.getItem("captap_played_date") === todayStr()
-      ? (localStorage.getItem("captap_last_score") || "0") : "0";
-    const link = `${APP_URL}/?battle=${currentUser.id}&opp=${oppId}&cs=${myScore}&cn=${name}`;
+    const btn = document.getElementById(`challenge-btn-${oppId}`);
+    if (btn) { btn.textContent = "Creating…"; btn.disabled = true; }
     const toast = document.getElementById("battle-copy-toast");
-    navigator.clipboard.writeText(link)
-      .then(() => {
-        toast.style.color = "";
-        toast.textContent = `✔ Challenge link copied! Send it to ${oppUsername}`;
-        setTimeout(() => toast.textContent = "", 3500);
-      })
-      .catch(() => {
-        toast.textContent = link;
-        setTimeout(() => toast.textContent = "", 6000);
+    toast.textContent = "";
+    try {
+      const res = await fetch("/api/battle/create", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ challenger_id: currentUser.id, opponent_id: oppId })
       });
+      const data = await res.json();
+      if (data.error) throw new Error(data.error);
+      const link = data.link;
+      navigator.clipboard.writeText(link)
+        .then(() => {
+          toast.innerHTML = `✔ Link copied! Send it to <b>${oppUsername}</b>. You can also <a href="${link}" style="color:var(--gold);text-decoration:underline;">play your battle now →</a>`;
+        })
+        .catch(() => {
+          toast.innerHTML = `Link: <a href="${link}" style="color:var(--gold);text-decoration:underline;">${link}</a> — copy and send to <b>${oppUsername}</b>`;
+        });
+    } catch(e) {
+      toast.style.color = "var(--red)";
+      toast.textContent = `Error: ${e.message}`;
+      toast.style.color = "";
+    } finally {
+      if (btn) { btn.textContent = "Challenge →"; btn.disabled = false; }
+    }
+  }
+
+  // ── Battle Quiz (played via ?bid= link) ─────────────────────────────────
+
+  async function loadBattleQuiz(bid) {
+    // Show daily-mode and game-card area (battle plays inside same card)
+    document.getElementById("daily-mode").style.display = "block";
+    document.getElementById("loading").style.display = "block";
+    document.getElementById("loading").querySelector("p").textContent = "Loading battle puzzle…";
+    document.getElementById("game-card").style.display = "none";
+    document.getElementById("results").style.display = "none";
+    document.getElementById("already-played").style.display = "none";
+    document.getElementById("progress").style.display = "flex";
+
+    try {
+      const res = await fetch(`/api/battle/${bid}/puzzle`);
+      if (!res.ok) {
+        document.getElementById("loading").querySelector(".card-inner").innerHTML =
+          `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">Battle not found or link is invalid.</p>`;
+        return;
+      }
+      const data = await res.json();
+      if (data.error) {
+        document.getElementById("loading").querySelector(".card-inner").innerHTML =
+          `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">Error: ${data.error}</p>`;
+        return;
+      }
+
+      // Set battle mode state
+      isBattleMode = true;
+      activeBattleId = bid;
+      battlePuzzle = data.rounds;
+      battleMeta = { battle_id: bid, challenger_name: data.challenger_name, opponent_name: data.opponent_name };
+      battleCurrent = 0;
+      battleScore = 0;
+      battleResults = [];
+      battleRoundTimes = [];
+      battleTotalTime = 0;
+
+      document.getElementById("loading").style.display = "none";
+      showRound(0);
+    } catch(e) {
+      document.getElementById("loading").querySelector(".card-inner").innerHTML =
+        `<p style="color:var(--red);text-align:center;font-family:'IBM Plex Mono',monospace">Failed to load battle. Please refresh.</p>`;
+    }
+  }
+
+  async function showBattleResults() {
+    document.getElementById("game-card").style.display = "none";
+    document.getElementById("progress").style.display = "none";
+
+    const maxTotal = battlePuzzle.reduce((s, r) => s + r.points_available, 0);
+    battleTotalTime = battleResults.reduce((a, r) => a + (r.time || 0), 0);
+    const avgTime = battleResults.length ? battleTotalTime / battleResults.length : 0;
+
+    // Build results UI (reuse the daily results area)
+    document.getElementById("perf-label").textContent = getPerformanceLabel(battleScore, maxTotal);
+    const finalScoreEl = document.getElementById("final-score");
+    finalScoreEl.textContent = "0";
+    document.getElementById("max-score-label").textContent = `OUT OF ${maxTotal} PTS (BATTLE)`;
+    document.getElementById("time-stats").textContent = `Avg ${avgTime.toFixed(1)}s/question · Total ${formatTime(battleTotalTime)}`;
+
+    const rows = document.getElementById("results-rows");
+    rows.innerHTML = "";
+    battleResults.forEach((r, idx) => {
+      const div = document.createElement("div");
+      div.className = "result-row";
+      div.style.animationDelay = `${600 + idx * 150}ms`;
+      div.innerHTML = `
+        <span class="result-icon">${r.correct ? "✔" : "✘"}</span>
+        <div class="result-company">${r.round.name}<div class="result-ticker">${r.round.ticker} · actual: ${r.round.actual_cap}</div></div>
+        <div class="result-pts ${r.correct ? "earned" : "missed"}">${r.pts}/${r.round.points_available}</div>`;
+      rows.appendChild(div);
+    });
+
+    document.getElementById("results").style.display = "block";
+    document.getElementById("practice-banner").style.display = "none";
+    document.getElementById("share-btn").style.display = "none";
+    document.getElementById("guest-cta").style.display = "none";
+    setTimeout(() => animateScore(finalScoreEl, battleScore, 800), 200);
+    if (battleScore >= 800) setTimeout(() => fireConfetti(battleScore === maxTotal), 300);
+
+    // Submit score to API
+    const roundResults = battleResults.map(r => ({ ticker: r.round.ticker, correct: r.correct, pts: r.pts, time: r.time }));
+    let scoresData = null;
+    if (currentUser) {
+      try {
+        const res = await fetch(`/api/battle/${activeBattleId}/score`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            user_id: currentUser.id,
+            score: battleScore,
+            max_score: maxTotal,
+            total_time_seconds: battleTotalTime,
+            round_results: roundResults,
+          })
+        });
+        const data = await res.json();
+        scoresData = data.scores;
+      } catch(e) {}
+    }
+
+    // Show 1v1 result banner
+    const banner = document.getElementById("challenge-banner");
+    if (banner) {
+      if (!currentUser) {
+        banner.innerHTML = `⚔ <b>Battle:</b> ${battleMeta.challenger_name} vs ${battleMeta.opponent_name}<br><span style="font-size:0.7rem;color:var(--muted);">Sign in to save your score and see the result!</span>`;
+        banner.style.background = "#12100a"; banner.style.border = "1px solid #3d3010";
+        banner.style.color = "var(--gold)"; banner.style.display = "block";
+      } else if (scoresData && scoresData.length >= 2) {
+        const myEntry    = scoresData.find(s => s.user_id === currentUser.id);
+        const otherEntry = scoresData.find(s => s.user_id !== currentUser.id);
+        if (myEntry && otherEntry) {
+          const diff = myEntry.score - otherEntry.score;
+          const otherName = otherEntry.username;
+          if (diff > 0)      banner.innerHTML = `🏆 You beat <b>${otherName}</b>! ${myEntry.score} vs ${otherEntry.score}`;
+          else if (diff < 0) banner.innerHTML = `😔 <b>${otherName}</b> beat you — ${otherEntry.score} vs your ${myEntry.score}`;
+          else               banner.innerHTML = `🤝 Tied with <b>${otherName}</b> at ${myEntry.score} pts!`;
+          banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
+          banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
+          banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
+          banner.style.display    = "block";
+        }
+      } else {
+        const opponentName = currentUser.id === parseInt(activeBattleId.split("-")[1] || "0")
+          ? battleMeta.opponent_name : battleMeta.challenger_name;
+        banner.innerHTML = `⏳ Waiting for your opponent to play… Your score: ${battleScore}/${maxTotal}`;
+        banner.style.background = "#12100a"; banner.style.border = "1px solid #3d3010";
+        banner.style.color = "var(--gold)"; banner.style.display = "block";
+      }
+    }
+
+    // Replace "Play Again" with daily-quiz return
+    const playAgainBtn = document.getElementById("play-again-btn");
+    if (playAgainBtn) {
+      playAgainBtn.textContent = "Back to Daily Quiz";
+      playAgainBtn.onclick = () => {
+        isBattleMode = false; activeBattleId = null;
+        battlePuzzle = []; battleCurrent = 0; battleScore = 0;
+        battleResults = []; battleMeta = {};
+        document.getElementById("results").style.display = "none";
+        document.getElementById("share-btn").style.display = "block";
+        document.getElementById("play-again-btn").textContent = "Play Again";
+        document.getElementById("play-again-btn").onclick = playAgain;
+        document.getElementById("progress").style.display = "flex";
+        document.getElementById("loading").style.display = "block";
+        document.getElementById("loading").querySelector("p").textContent = "Pulling market data from the wire…";
+        init();
+      };
+      playAgainBtn.style.display = "block";
+    }
   }
 
   // ═══════════════════════════════════════════════════════════════

@@ -22,6 +22,7 @@ from market_cap_quiz import (
     fetch_sp500_universe,
     format_cap,
     generate_choices,
+    get_battle_companies,
     get_companies_by_tickers,
     get_daily_companies,
     load_snapshot_for_today,
@@ -339,6 +340,127 @@ def submit_battle():
     try:
         saved = db.save_battle(challenger_id, opponent_id, challenger_score, opponent_score, played_at)
         return jsonify({"saved": saved})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/battle/create", methods=["POST"])
+def battle_create():
+    """Create a new battle puzzle for two players and return a private link."""
+    data = request.get_json()
+    challenger_id = data.get("challenger_id")
+    opponent_id   = data.get("opponent_id")
+
+    if not challenger_id or not opponent_id:
+        return jsonify({"error": "challenger_id and opponent_id are required"}), 400
+
+    try:
+        universe = get_universe()
+        cache    = load_snapshot_for_today()
+        companies = get_battle_companies(universe, cache, f"battle-{challenger_id}-{opponent_id}-{random.randint(0, 999999)}")
+        save_snapshot(cache)
+
+        companies_data = [
+            {
+                "name": c.name,
+                "ticker": c.ticker,
+                "market_cap_billion_usd": c.market_cap_billion_usd,
+                "ceo": c.ceo,
+                "headquarters": c.headquarters,
+                "logo_url": c.logo_url,
+                "description": c.description,
+                "fun_fact": c.fun_fact,
+                "revenue_billion_usd": c.revenue_billion_usd,
+                "full_time_employees": c.full_time_employees,
+            }
+            for c in companies
+        ]
+
+        battle_id = db.create_battle_puzzle(challenger_id, opponent_id, companies_data)
+        link = f"{APP_URL}/?bid={battle_id}"
+        return jsonify({"battle_id": battle_id, "link": link})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/battle/<battle_id>/puzzle", methods=["GET"])
+def battle_puzzle(battle_id):
+    """Return the puzzle rounds for a given battle."""
+    try:
+        puzzle = db.get_battle_puzzle(battle_id)
+        if not puzzle:
+            return jsonify({"error": "Battle not found"}), 404
+
+        companies_data = puzzle["companies_data"]
+        if isinstance(companies_data, str):
+            import json as _json
+            companies_data = _json.loads(companies_data)
+
+        round_points = [100, 100, 200, 300, 300]
+        rounds = []
+        for i, c in enumerate(companies_data):
+            company_cap = float(c["market_cap_billion_usd"])
+            choices, correct_idx = generate_choices(company_cap)
+            rounds.append({
+                "name": c["name"],
+                "ticker": c["ticker"],
+                "ceo": c.get("ceo", "N/A"),
+                "headquarters": c.get("headquarters", "N/A"),
+                "logo_url": c.get("logo_url", ""),
+                "description": c.get("description", ""),
+                "fun_fact": c.get("fun_fact", ""),
+                "points_available": round_points[i],
+                "choices": [format_cap(ch) for ch in choices],
+                "correct_index": correct_idx,
+                "actual_cap": format_cap(company_cap),
+            })
+
+        return jsonify({
+            "battle_id": battle_id,
+            "challenger_name": puzzle["challenger_name"],
+            "opponent_name": puzzle.get("opponent_name") or "???",
+            "rounds": rounds,
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/battle/<battle_id>/score", methods=["POST"])
+def battle_score(battle_id):
+    """Submit a player's score for a battle."""
+    data               = request.get_json()
+    user_id            = data.get("user_id")
+    score              = data.get("score")
+    max_score          = data.get("max_score")
+    total_time_seconds = data.get("total_time_seconds")
+    round_results      = data.get("round_results", [])
+
+    if not all([user_id, score is not None, max_score]):
+        return jsonify({"error": "Missing fields"}), 400
+
+    try:
+        saved = db.save_battle_score(battle_id, user_id, score, max_score, total_time_seconds, round_results)
+        db.record_battle_result(battle_id)
+        scores = db.get_battle_scores(battle_id)
+        return jsonify({"saved": saved, "scores": scores})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/battle/<battle_id>/result", methods=["GET"])
+def battle_result(battle_id):
+    """Return puzzle metadata + all submitted scores for a battle."""
+    try:
+        puzzle = db.get_battle_puzzle(battle_id)
+        if not puzzle:
+            return jsonify({"error": "Battle not found"}), 404
+        scores = db.get_battle_scores(battle_id)
+        return jsonify({
+            "battle_id": battle_id,
+            "challenger_name": puzzle["challenger_name"],
+            "opponent_name": puzzle.get("opponent_name") or "???",
+            "scores": scores,
+        })
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
