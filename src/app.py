@@ -31,7 +31,7 @@ import db
 
 app = Flask(__name__)
 
-APP_URL = os.environ.get("APP_URL", "https://captap.app")
+APP_URL = os.environ.get("APP_URL", "https://cs-training-week1-production.up.railway.app")
 
 _sp500_universe: list | None = None
 
