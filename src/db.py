@@ -290,6 +290,23 @@ def lock_hl_puzzle(est_date: str, hl_data: list) -> None:
             )
 
 
+def get_user_today_score(user_id: int) -> dict:
+    """Return the user's daily score for today (EST), or {played: False}."""
+    with get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute(
+                """SELECT score, max_score, total_time_seconds
+                   FROM scores
+                   WHERE user_id = %s AND played_at = %s
+                     AND (game_mode = 'daily' OR game_mode IS NULL)""",
+                (user_id, _est_today()),
+            )
+            row = cur.fetchone()
+            if row:
+                return {"played": True, "score": row[0], "max_score": row[1], "time": row[2]}
+            return {"played": False}
+
+
 def get_all_users() -> list[dict]:
     """Return all users sorted by username."""
     with get_conn() as conn:

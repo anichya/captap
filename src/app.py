@@ -283,6 +283,14 @@ def list_users():
         return jsonify({"error": str(e)}), 500
 
 
+@app.route("/api/score/user/<int:user_id>")
+def user_today_score(user_id):
+    try:
+        return jsonify(db.get_user_today_score(user_id))
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # ---------------------------------------------------------------------------
 # Scores
 # ---------------------------------------------------------------------------

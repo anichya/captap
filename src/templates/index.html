@@ -136,11 +136,13 @@
     .company-funfact { font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; color: var(--gold); border: 1px solid #2a2010; background: #12100a; padding: 8px 12px; margin-bottom: 10px; display: flex; gap: 8px; border-radius: 2px; }
     .company-description { font-size: 0.8rem; color: var(--muted); line-height: 1.65; border-left: 2px solid var(--gold); padding: 8px 12px; margin-bottom: 10px; background: var(--surface2); }
 
-    /* ── Round timer (Change 1) ── */
+    /* ── Round timer ── */
     #round-timer {
-      font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; font-weight: 600;
-      color: var(--muted); text-align: right; margin-bottom: 10px; letter-spacing: 1px;
+      font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600;
+      color: var(--gold); text-align: right; margin-bottom: 12px; letter-spacing: 1px;
     }
+    #round-timer.warn  { color: #fb923c; }
+    #round-timer.slow  { color: var(--red); }
 
     /* ── Choices ── */
     .question { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1.5px; margin-bottom: 10px; }
@@ -917,7 +919,8 @@
       const m = Math.floor(elapsed / 60);
       const s = elapsed % 60;
       const sf = s.toFixed(1).padStart(4, "0");
-      el.textContent = `${m}:${sf}`;
+      el.textContent = `⏱ ${m}:${sf}`;
+      el.className = elapsed >= 30 ? "slow" : elapsed >= 15 ? "warn" : "";
     }, 100);
   }
 
@@ -1461,16 +1464,14 @@
       fetchAndShowStats(currentUser.id);
     }
 
-    // Battle / challenge result banner
-    const rivalName  = battleChallengerNameParam ? decodeURIComponent(battleChallengerNameParam) : challengerName;
-    const rivalScore = battleChallengerScoreParam || challengerScore;
-    if (rivalName && rivalScore && !isPractice) {
+    // Legacy ?c=name&s=score challenge banner (non-battle links)
+    if (challengerName && challengerScore && !isPractice && !battleChallengerIdParam) {
       const banner = document.getElementById("challenge-banner");
       if (banner) {
-        const diff = totalScore - rivalScore;
-        if (diff > 0) banner.innerHTML = `🏆 You beat <b>${rivalName}</b>'s score of ${rivalScore} by ${diff} pts!`;
-        else if (diff < 0) banner.innerHTML = `😔 <b>${rivalName}</b> beat you by ${Math.abs(diff)} pts (${rivalScore} vs your ${totalScore})`;
-        else banner.innerHTML = `🤝 Tied with <b>${rivalName}</b> at ${totalScore} pts!`;
+        const diff = totalScore - challengerScore;
+        if (diff > 0) banner.innerHTML = `🏆 You beat <b>${challengerName}</b>'s score of ${challengerScore} by ${diff} pts!`;
+        else if (diff < 0) banner.innerHTML = `😔 <b>${challengerName}</b> beat you by ${Math.abs(diff)} pts (${challengerScore} vs your ${totalScore})`;
+        else banner.innerHTML = `🤝 Tied with <b>${challengerName}</b> at ${totalScore} pts!`;
         banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
         banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
         banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
@@ -1480,19 +1481,43 @@
 
     // Auto-record battle to DB if arriving via ?battle= params
     if (battleChallengerIdParam && battleOpponentIdParam && currentUser && !isPractice) {
-      if (currentUser.id === battleOpponentIdParam && battleChallengerScoreParam > 0) {
-        try {
-          await fetch("/api/battle", {
-            method: "POST", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              challenger_id:    battleChallengerIdParam,
-              opponent_id:      battleOpponentIdParam,
-              challenger_score: battleChallengerScoreParam,
-              opponent_score:   totalScore,
-              played_at:        todayStr()
-            })
-          });
-        } catch(e) {}
+      if (currentUser.id === battleOpponentIdParam) {
+        // Use score from URL param — or fetch from API if challenger hadn't played when they sent the link
+        let cScore = battleChallengerScoreParam;
+        const cName = battleChallengerNameParam ? decodeURIComponent(battleChallengerNameParam) : "your challenger";
+        if (!cScore) {
+          try {
+            const r = await fetch(`/api/score/user/${battleChallengerIdParam}`);
+            const d = await r.json();
+            cScore = d.played ? d.score : 0;
+          } catch(e) {}
+        }
+        const banner = document.getElementById("challenge-banner");
+        if (cScore && banner) {
+          const diff = totalScore - cScore;
+          if (diff > 0)      banner.innerHTML = `🏆 You beat <b>${cName}</b>'s score of ${cScore} by ${diff} pts!`;
+          else if (diff < 0) banner.innerHTML = `😔 <b>${cName}</b> beat you by ${Math.abs(diff)} pts (${cScore} vs your ${totalScore})`;
+          else               banner.innerHTML = `🤝 Tied with <b>${cName}</b> at ${totalScore} pts!`;
+          banner.style.background = diff >= 0 ? "#0a1a0a" : "#1a0a0a";
+          banner.style.border     = `1px solid ${diff >= 0 ? "#1a4a1a" : "#4a1a1a"}`;
+          banner.style.color      = diff >= 0 ? "#4caf50" : "#ef5350";
+          banner.style.display    = "block";
+        } else if (banner) {
+          banner.innerHTML = `⏳ <b>${cName}</b> hasn't played today yet — check back to see who wins!`;
+          banner.style.background = "#12100a"; banner.style.border = "1px solid #3d3010";
+          banner.style.color = "var(--gold)"; banner.style.display = "block";
+        }
+        if (cScore) {
+          try {
+            await fetch("/api/battle", {
+              method: "POST", headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                challenger_id: battleChallengerIdParam, opponent_id: battleOpponentIdParam,
+                challenger_score: cScore, opponent_score: totalScore, played_at: todayStr()
+              })
+            });
+          } catch(e) {}
+        }
       }
     }
 
@@ -1956,25 +1981,19 @@
 
   function sendBattleChallenge(oppId, oppUsername) {
     if (!currentUser) { showModal(); return; }
-    const myScore = localStorage.getItem("captap_last_score");
-    if (!myScore || localStorage.getItem("captap_played_date") !== todayStr()) {
-      const toast = document.getElementById("battle-copy-toast");
-      toast.style.color = "var(--red)";
-      toast.textContent = "Play today's Daily Quiz first — your score gets embedded in the link!";
-      setTimeout(() => { toast.textContent = ""; toast.style.color = ""; }, 4000);
-      return;
-    }
     const name = encodeURIComponent(currentUser.username);
+    // Include score if already played today — opponent will also try fetching it via API as fallback
+    const myScore = localStorage.getItem("captap_played_date") === todayStr()
+      ? (localStorage.getItem("captap_last_score") || "0") : "0";
     const link = `${APP_URL}/?battle=${currentUser.id}&opp=${oppId}&cs=${myScore}&cn=${name}`;
+    const toast = document.getElementById("battle-copy-toast");
     navigator.clipboard.writeText(link)
       .then(() => {
-        const toast = document.getElementById("battle-copy-toast");
         toast.style.color = "";
         toast.textContent = `✔ Challenge link copied! Send it to ${oppUsername}`;
         setTimeout(() => toast.textContent = "", 3500);
       })
       .catch(() => {
-        const toast = document.getElementById("battle-copy-toast");
         toast.textContent = link;
         setTimeout(() => toast.textContent = "", 6000);
       });
