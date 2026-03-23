@@ -53,6 +53,17 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/admin/reset-puzzle")
+def reset_puzzle():
+    if not db.DATABASE_URL:
+        return "No DB", 400
+    est_date = datetime.now(EST).strftime("%Y-%m-%d")
+    with db.get_conn() as conn:
+        with conn.cursor() as cur:
+            cur.execute("DELETE FROM daily_puzzle WHERE played_at = %s", (est_date,))
+    return f"Deleted puzzle for {est_date}. Reload the game to regenerate.", 200
+
+
 # ---------------------------------------------------------------------------
 # Puzzle — Daily Quiz
 # ---------------------------------------------------------------------------
