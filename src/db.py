@@ -204,7 +204,7 @@ def _est_week_start() -> str:
 
 
 def get_weekly_leaderboard() -> list[dict]:
-    """Avg score and games played for the current Mon–Sun week (EST), ranked by avg."""
+    """All-time stats: total score, games played, avg score, ranked by total score."""
     with get_conn() as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute("""
@@ -212,14 +212,14 @@ def get_weekly_leaderboard() -> list[dict]:
                     u.username,
                     ROUND(AVG(s.score))  AS avg_score,
                     SUM(s.max_score) / COUNT(s.id) AS avg_max,
-                    COUNT(s.id)          AS days_played
+                    COUNT(s.id)          AS days_played,
+                    SUM(s.score)         AS total_score
                 FROM scores s
                 JOIN users u ON s.user_id = u.id
-                WHERE s.played_at >= %s
-                  AND (s.game_mode = 'daily' OR s.game_mode IS NULL)
+                WHERE (s.game_mode = 'daily' OR s.game_mode IS NULL)
                 GROUP BY u.id, u.username
-                ORDER BY avg_score DESC
-            """, (_est_week_start(),))
+                ORDER BY total_score DESC
+            """)
             return [dict(r) for r in cur.fetchall()]
 
 

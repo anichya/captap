@@ -470,7 +470,7 @@
     <div style="font-family:'Playfair Display',serif;font-size:1.3rem;font-weight:700;margin-bottom:16px;">Leaderboard</div>
     <div class="lb-tabs">
       <div class="lb-tab active" id="modal-tab-daily"   onclick="switchModalTab('daily')">Today</div>
-      <div class="lb-tab"        id="modal-tab-weekly"  onclick="switchModalTab('weekly')">This Week</div>
+      <div class="lb-tab"        id="modal-tab-weekly"  onclick="switchModalTab('weekly')">All Time</div>
       <div class="lb-tab"        id="modal-tab-battles" onclick="switchModalTab('battles')">Battles</div>
     </div>
     <div class="lb-body" id="modal-lb-body"><div class="lb-empty">Loading…</div></div>
@@ -531,7 +531,7 @@
       <div class="card-inner">
         <div class="lb-tabs" style="margin-bottom:0;">
           <div class="lb-tab active" id="ap-tab-daily"  onclick="switchApTab('daily')">Today</div>
-          <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">This Week</div>
+          <div class="lb-tab"        id="ap-tab-weekly" onclick="switchApTab('weekly')">All Time</div>
         </div>
         <div class="lb-body" id="ap-lb-body" style="margin-bottom:20px;"><div class="lb-empty">Loading leaderboard…</div></div>
         <div id="user-stats-block" class="stats-grid" style="display:none;margin-top:16px;">
@@ -619,7 +619,7 @@
         <div class="lb-section">
           <div class="lb-tabs">
             <div class="lb-tab active" id="tab-daily"  onclick="switchTab('daily')">Today</div>
-            <div class="lb-tab"        id="tab-weekly" onclick="switchTab('weekly')">This Week</div>
+            <div class="lb-tab"        id="tab-weekly" onclick="switchTab('weekly')">All Time</div>
           </div>
           <div class="lb-body" id="lb-body">
             <div class="lb-empty">Loading leaderboard…</div>
@@ -1165,7 +1165,7 @@
     if (!data.length) return `<div class="lb-empty">No scores yet — be the first!</div>`;
     const ordinal = n => ["1ST","2ND","3RD"][n-1] || `${n}TH`;
     const rankClasses = ["gold","silver","bronze"];
-    const scoreKey = tab === "daily" ? "score" : "avg_score";
+    const scoreKey = tab === "daily" ? "score" : "total_score";
 
     const ranks = [];
     for (let i = 0; i < data.length; i++) {
@@ -1192,13 +1192,12 @@
       const rankLabel = (tied ? "T-" : "") + ordinal(r);
       const rankCls = r <= 3 ? rankClasses[r-1] : "";
       const isMe = currentUser && row.username === currentUser.username;
-      const score = tab === "daily" ? `${row.score} pts` : `avg ${row.avg_score} pts`;
-      // Show time on leaderboard (Change 1)
+      const score = tab === "daily" ? `${row.score} pts` : `${row.total_score} pts`;
       let meta = "";
       if (tab === "daily") {
         meta = row.total_time_seconds ? `${row.pct}% · ${formatTime(row.total_time_seconds)}` : `${row.pct}%`;
       } else {
-        meta = `${row.days_played} game${row.days_played > 1 ? "s" : ""}`;
+        meta = `${row.days_played} game${row.days_played > 1 ? "s" : ""} · avg ${row.avg_score}`;
       }
       return `<div class="lb-row">
         <span class="lb-rank ${rankCls}">${rankLabel}</span>
