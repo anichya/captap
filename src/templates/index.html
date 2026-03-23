@@ -39,7 +39,7 @@
     #top-nav {
       width: 100%; background: var(--surface);
       border-bottom: 1px solid var(--border2);
-      display: flex; max-width: 100%;
+      display: flex; max-width: 100%; position: relative;
     }
     .nav-btn {
       flex: 1; padding: 10px; background: transparent; border: none;
@@ -73,22 +73,6 @@
     .score-label { font-family: "IBM Plex Mono", monospace; font-size: 0.6rem; color: var(--muted); letter-spacing: 1px; text-transform: uppercase; }
     #score-display { font-family: "IBM Plex Mono", monospace; font-size: 1.3rem; font-weight: 600; color: var(--gold); }
 
-    /* ── Mode tabs ── */
-    #mode-tabs {
-      width: 100%; max-width: 620px; padding: 0 20px; margin-bottom: 16px;
-      display: flex; gap: 0;
-    }
-    .mode-tab {
-      flex: 1; padding: 8px 4px; background: var(--surface2);
-      border: 1px solid var(--border2); border-bottom: none;
-      font-family: "IBM Plex Mono", monospace; font-size: 0.62rem; font-weight: 600;
-      letter-spacing: 0.5px; text-transform: uppercase; color: var(--muted);
-      cursor: pointer; text-align: center; transition: all 0.15s;
-    }
-    .mode-tab:first-child { border-radius: 2px 0 0 0; }
-    .mode-tab:last-child  { border-radius: 0 2px 0 0; }
-    .mode-tab.active { background: var(--surface); color: var(--gold); border-top: 2px solid var(--gold); }
-    .mode-tab:hover:not(.active) { color: var(--text); }
     #mode-content { width: 100%; max-width: 620px; padding: 0 20px; }
 
     /* ── Progress ── */
@@ -437,6 +421,24 @@
     }
     .battle-challenge-btn:hover { color: var(--gold); border-color: var(--gold); }
     #battle-copy-toast { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; color: var(--green2); text-align: center; min-height: 16px; margin-top: 6px; }
+
+    /* ── Mode dropdown ── */
+    #mode-dropdown {
+      display: none; position: absolute; top: 100%; left: 0;
+      background: var(--surface); border: 1px solid var(--border2);
+      border-top: 2px solid var(--gold); z-index: 200;
+      min-width: 220px; box-shadow: 0 8px 24px rgba(0,0,0,0.5);
+    }
+    #mode-dropdown.open { display: block; }
+    .mode-opt {
+      padding: 12px 16px; cursor: pointer; border-bottom: 1px solid var(--border);
+      font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.5px; color: var(--muted); transition: all 0.12s;
+      display: flex; flex-direction: column; gap: 3px;
+    }
+    .mode-opt:last-child { border-bottom: none; }
+    .mode-opt:hover, .mode-opt.active { background: #1a1608; color: var(--gold); }
+    .mode-opt-sub { font-size: 0.6rem; color: var(--muted); font-weight: 400; letter-spacing: 0.3px; }
   </style>
 </head>
 <body>
@@ -480,10 +482,17 @@
 <!-- Ticker -->
 <div id="ticker-wrap"><div class="ticker-inner" id="ticker"></div></div>
 
-<!-- Top Nav Strip (Change 3) -->
+<!-- Top Nav Strip -->
 <div id="top-nav">
+  <button class="nav-btn" id="mode-nav-btn" onclick="toggleModeDropdown()">◉ DAILY QUIZ ▾</button>
   <button class="nav-btn" onclick="openLbModal()">🏆 Leaderboard</button>
   <button class="nav-btn" id="user-nav-btn" onclick="showModal()">▸ Sign In</button>
+</div>
+<div id="mode-dropdown">
+  <div class="mode-opt active" id="mopt-daily"  onclick="selectMode('daily')">Daily Quiz<span class="mode-opt-sub">5 rounds · multiple choice</span></div>
+  <div class="mode-opt"        id="mopt-hl"     onclick="selectMode('hl')">Higher / Lower<span class="mode-opt-sub">10 rounds · which cap is bigger?</span></div>
+  <div class="mode-opt"        id="mopt-expert" onclick="selectMode('expert')">Expert Mode<span class="mode-opt-sub">type your guess in billions</span></div>
+  <div class="mode-opt"        id="mopt-battle" onclick="selectMode('battle')">Battle Royale<span class="mode-opt-sub">1v1 private puzzle challenge</span></div>
 </div>
 
 <!-- Masthead -->
@@ -501,14 +510,6 @@
 <div id="score-area">
   <div class="score-label">Today's Score</div>
   <div id="score-display">0 pts</div>
-</div>
-
-<!-- Mode Tabs (Change 5) -->
-<div id="mode-tabs">
-  <div class="mode-tab active" id="mode-tab-daily"   onclick="switchMode('daily')">Daily Quiz</div>
-  <div class="mode-tab"        id="mode-tab-hl"      onclick="switchMode('hl')">Higher/Lower</div>
-  <div class="mode-tab"        id="mode-tab-expert"  onclick="switchMode('expert')">Expert</div>
-  <div class="mode-tab"        id="mode-tab-battle"  onclick="switchMode('battle')">Battle Royale</div>
 </div>
 
 <!-- Mode content wrapper -->
@@ -782,7 +783,7 @@
   // ═══════════════════════════════════════════════════════════════
   // CONSTANTS & STATE
   // ═══════════════════════════════════════════════════════════════
-  const APP_URL = "https://cs-training-week1-production.up.railway.app";
+  const APP_URL = "{{ app_url }}";
 
   // Daily quiz state
   let puzzle = [], current = 0, totalScore = 0, results = [], selectedChoice = null;
@@ -1091,17 +1092,38 @@
   document.getElementById("reg-username").addEventListener("keydown", e => { if (e.key === "Enter") registerUser(); });
   document.getElementById("reg-email").addEventListener("keydown",    e => { if (e.key === "Enter") registerUser(); });
 
+  document.addEventListener("click", e => {
+    const dd = document.getElementById("mode-dropdown");
+    const btn = document.getElementById("mode-nav-btn");
+    if (dd.classList.contains("open") && !dd.contains(e.target) && e.target !== btn) {
+      dd.classList.remove("open");
+    }
+  });
+
   // ═══════════════════════════════════════════════════════════════
   // MODE SWITCHING (Change 5)
   // ═══════════════════════════════════════════════════════════════
 
+  const MODE_LABELS = { daily: "DAILY QUIZ", hl: "HIGHER / LOWER", expert: "EXPERT MODE", battle: "BATTLE ROYALE" };
+
+  function toggleModeDropdown() {
+    document.getElementById("mode-dropdown").classList.toggle("open");
+  }
+
+  function selectMode(mode) {
+    document.getElementById("mode-dropdown").classList.remove("open");
+    switchMode(mode);
+  }
+
   function switchMode(mode) {
     currentMode = mode;
+    document.getElementById("mode-nav-btn").textContent = `◉ ${MODE_LABELS[mode]} ▾`;
     ["daily","hl","expert","battle"].forEach(m => {
-      document.getElementById(`mode-tab-${m}`).classList.toggle("active", m === mode);
-      document.getElementById(`${m === "hl" ? "hl" : m === "expert" ? "expert" : m === "battle" ? "battle" : "daily"}-mode`).style.display = "none";
+      const opt = document.getElementById(`mopt-${m}`);
+      if (opt) opt.classList.toggle("active", m === mode);
+      const panel = document.getElementById(`${m}-mode`);
+      if (panel) panel.style.display = "none";
     });
-    // Show correct panel
     if (mode === "daily") document.getElementById("daily-mode").style.display = "block";
     else if (mode === "hl") { document.getElementById("hl-mode").style.display = "block"; loadHlMode(); }
     else if (mode === "expert") { document.getElementById("expert-mode").style.display = "block"; loadExpertMode(); }
@@ -1353,8 +1375,7 @@
     // Description truncated to 120 chars (Change 2)
     const desc = document.getElementById("company-description");
     if (round.description) {
-      const text = round.description.length > 120 ? round.description.slice(0, 120) + "…" : round.description;
-      desc.textContent = text;
+      desc.textContent = round.description;
       desc.style.display = "block";
     } else {
       desc.style.display = "none";
@@ -1833,8 +1854,7 @@
 
     const descEl = document.getElementById("exp-description");
     if (round.description) {
-      const text = round.description.length > 120 ? round.description.slice(0, 120) + "…" : round.description;
-      descEl.textContent = text;
+      descEl.textContent = round.description;
       descEl.style.display = "block";
     } else {
       descEl.style.display = "none";

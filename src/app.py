@@ -50,7 +50,7 @@ def get_universe() -> list:
 
 @app.route("/")
 def index():
-    return render_template("index.html")
+    return render_template("index.html", app_url=APP_URL)
 
 
 @app.route("/admin/reset-puzzle")
