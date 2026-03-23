@@ -216,7 +216,6 @@ def get_weekly_leaderboard() -> list[dict]:
                     SUM(s.score)         AS total_score
                 FROM scores s
                 JOIN users u ON s.user_id = u.id
-                WHERE (s.game_mode = 'daily' OR s.game_mode IS NULL)
                 GROUP BY u.id, u.username
                 ORDER BY total_score DESC
             """)
